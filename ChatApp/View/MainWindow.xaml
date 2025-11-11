@@ -1,0 +1,35 @@
+﻿<Window x:Class="ChatApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ChatApp"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="800">
+    <Grid Margin="0,0,0,14">
+        <StackPanel Margin="10,10,495,305">
+            <TextBox TextWrapping="Wrap" Text="" Height="40"/>
+            <Button Content="Set username" Click="Button_Click_1"/>
+            <TextBox TextWrapping="Wrap" Height="40"/>
+            <Button Content="Set portnumber" Click="Button_Click"/>
+            <TextBox TextWrapping="Wrap" Text="" Height="40"/>
+            <Button Content="Connect to friend"/>
+            <TextBox TextWrapping="Wrap" Text="Disconnected"/>
+            <Button Content="Disconnect"/>
+        </StackPanel>
+        <StackPanel Margin="320,279,0,15">
+            <TextBox TextWrapping="Wrap" Text="" Width="488" Height="68" TextChanged="TextBox_TextChanged_1"/>
+            <Button Content="Send message" Height="47" Width="480"/>
+            <Button Content="Ping" Height="45" Click="Button_Click_1"/>
+        </StackPanel>
+        <StackPanel Margin="5,279,495,91">
+            <Button Content="Chat History" Height="85"/>
+            <Button Content="Go back to chat" Height="75"/>
+        </StackPanel>
+        <StackPanel Margin="320,24,0,305" Background="AliceBlue">
+            <TextBlock TextWrapping="Wrap" Text="Chattext" Height="230"/>
+        </StackPanel>
+    </Grid>
+
+
+</Window>
