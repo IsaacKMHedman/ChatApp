@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ChatApp.Model;
+using ChatApp.ViewModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,7 +25,9 @@ namespace ChatApp
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = new MainWindowViewModel(new NetworkManager());
         }
+
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -35,12 +39,16 @@ namespace ChatApp
 
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void SetPortnumberButton(object sender, RoutedEventArgs e)
         {
 
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void SetUsernameButton(object sender, RoutedEventArgs e)
+        {
+
+        }
+        private void PingButtonClick(object sender, RoutedEventArgs e)
         {
 
         }
