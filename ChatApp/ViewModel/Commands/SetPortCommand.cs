@@ -8,12 +8,12 @@ using System.Windows.Input;
 
 namespace ChatApp.ViewModel.Commands
 {
-    internal class SetPort : ICommand
+    internal class SetPortCommand : ICommand
     {
             public event EventHandler CanExecuteChanged;
             private MainWindowViewModel parent = null;
 
-            public SetPort(MainWindowViewModel parent)
+            public SetPortCommand(MainWindowViewModel parent)
             {
                 this.parent = parent;
             }

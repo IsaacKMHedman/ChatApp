@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,12 +8,12 @@ using System.Windows.Input;
 
 namespace ChatApp.ViewModel.Commands
 {
-    internal class StartServerCommand : ICommand
+    internal class SetFriendPortCommand : ICommand
     {
         public event EventHandler CanExecuteChanged;
         private MainWindowViewModel parent = null;
 
-        public StartServerCommand(MainWindowViewModel parent)
+        public SetFriendPortCommand(MainWindowViewModel parent)
         {
             this.parent = parent;
         }
@@ -21,8 +22,10 @@ namespace ChatApp.ViewModel.Commands
         {
             return true;
         }
-
-        public void Execute(object parameter) => parent.StartServer();
-
+        public void Execute(object parameter)
+        {
+            Debug.WriteLine("Setting Friend Port");
+            parent.setPortFriend();
+        }
     }
 }

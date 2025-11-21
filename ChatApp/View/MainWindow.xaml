@@ -8,12 +8,12 @@
         Title="MainWindow" Height="600" Width="800">
     <Grid Margin="0,0,0,14">
         <StackPanel Margin="10,10,495,305">
-            <TextBox x:Name="UsernameTextBox" TextWrapping="Wrap" Text="" Height="40"/>
-            <Button Content="Set username" Click="SetUsernameButton"/>
+            <TextBox x:Name="UsernameTextBox" TextWrapping="Wrap" Text="{Binding Path=NameUser, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" Height="40"/>
+            <Button Content="Set username" Click="SetUsernameButton" Command="{Binding SetNameUserCommand}"/>
             <TextBox TextWrapping="Wrap" Height="40" Text="{Binding Path=PortVm, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}"/>
-            <Button Content="Set portnumber" Click="SetPortnumberButton" Command="{Binding SetPort}"/>
-            <TextBox TextWrapping="Wrap" Text="" Height="40"/>
-            <Button Content="Connect to friend"/>
+            <Button Content="Set portnumber" Command="{Binding SetPort}"/>
+            <TextBox TextWrapping="Wrap" Text="{Binding Path=FriendPort, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" Height="40"/>
+            <Button Content="Connect to friend" Command="{Binding SetFriendPortCommand}"/>
             <TextBox TextWrapping="Wrap" Text="Disconnected"/>
             <Button Content="Disconnect"/>
         </StackPanel>
@@ -22,9 +22,10 @@
             <Button Content="Send message" Height="47" Width="480" Command="{Binding SendMessageButtonCommand}"/>
             <Button Content="Ping" Height="45" Click="PingButtonClick"/>
         </StackPanel>
-        <StackPanel Margin="5,279,495,91">
+        <StackPanel Margin="5,279,495,15">
             <Button Content="Chat History" Height="85"/>
             <Button Content="Go back to chat" Height="75"/>
+            <Button Content="Start your connection" Height="75" Command="{Binding StartServerCommand}"/>
         </StackPanel>
         <StackPanel Margin="320,24,0,305" Background="AliceBlue">
             <TextBlock TextWrapping="Wrap" Text="{Binding ChatText, UpdateSourceTrigger=PropertyChanged}" Height="400"/>

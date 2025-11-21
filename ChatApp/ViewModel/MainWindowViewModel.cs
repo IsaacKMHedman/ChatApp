@@ -18,14 +18,23 @@ namespace ChatApp.ViewModel
     {
 
         
-        private NetworkManager _networkManager;
+        private NetworkManager _networkManager { get; set; }
         private ICommand sendMessageButtonCommand;
         private ICommand setPort;
+        private ICommand setNameUserCommand;
+        private ICommand setFriendPortCommand;
+        private ICommand startServerCommand; 
 
         //Det här är tänkt så att man ska kunna ändra texten i chatrutan. 
-        public String ChatText => _networkManager.FirstName;
-        public String Port => _networkManager.Port;
+        public String ChatText => _networkManager.Message;
+        
+
+        //Den här gör ingenting.. Kommenterar ut den
+        //public String Port => _networkManager.Port;
+
         private String portVm;
+        private String nameUser;
+        private String friendPort;
         public string PortVm
         {
             get => portVm;
@@ -44,7 +53,23 @@ namespace ChatApp.ViewModel
             }
         }
 
+        public string NameUser
+        {
+            get => nameUser;
+            set
+            {
+                nameUser = value; OnPropertyChanged(nameof(NameUser));  
+            }
+        }
 
+        public string FriendPort
+        {
+            get => friendPort;
+            set
+            {
+                friendPort = value; OnPropertyChanged(nameof(FriendPort));
+            }
+        }
 
         public MainWindowViewModel(NetworkManager networkManager)
         {
@@ -56,7 +81,7 @@ namespace ChatApp.ViewModel
 
         private void NetworkManagerOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == nameof(NetworkManager.FirstName))
+            if(e.PropertyName == nameof(NetworkManager.Message))
             {
                 OnPropertyChanged(nameof(ChatText));
             }
@@ -76,7 +101,7 @@ namespace ChatApp.ViewModel
             {
                 if (setPort == null)
                 {
-                    setPort = new SetPort(this);
+                    setPort = new SetPortCommand(this);
                 }
                 return setPort;
             }
@@ -101,9 +126,55 @@ namespace ChatApp.ViewModel
                 sendMessageButtonCommand = value;
             }
         }
+        public ICommand SetNameUserCommand
+        {
+            get
+            {
+                if (setNameUserCommand == null)
+                {
+                    setNameUserCommand = new SetNameCommand(this);
+                }
+                return setNameUserCommand;
+            }
+            set 
+            {
+                setNameUserCommand = value;
+            }
+        }
+        public ICommand SetFriendPortCommand
+        {
+            get 
+            {
+                if(setFriendPortCommand == null)
+                {
+                    setFriendPortCommand = new SetFriendPortCommand(this);
+                }
+                return setFriendPortCommand;
+            }
+            set
+            {
+                SetFriendPortCommand = value;
+            }
+        }
+        public ICommand StartServerCommand
+        {
+            get
+            {
+                if (startServerCommand == null)
+                {
+                    startServerCommand = new StartServerCommand(this);
+                }
+                return startServerCommand;
+            }
+            set
+            {
+                startServerCommand = value;
+            }
+        }
+
         public void sendMessage()
         {
-            _networkManager.FirstName = sendMessageTextBox;
+            _networkManager.Message = sendMessageTextBox;
             Debug.WriteLine(sendMessageTextBox);
         }
 
@@ -112,9 +183,35 @@ namespace ChatApp.ViewModel
             _networkManager.adress += portVm;
             Debug.WriteLine(_networkManager.adress);
             _networkManager.Port = portVm;
-            _networkManager.FirstName += portVm;
+            _networkManager.Message += portVm;
             Debug.WriteLine("Port: " + portVm);
 
         }
+
+        public void setNameUser()
+        {
+            _networkManager.Name = nameUser;
+            Debug.WriteLine(nameUser);
+        }
+        public void setPortFriend()
+        {
+            _networkManager.FriendPort = friendPort;
+            Debug.WriteLine(friendPort);
+        }
+        
+        public void StartServer()
+        {
+            _networkManager.Message += "start connection in mainwindowviewmodel \n";
+            _networkManager.startConnection();
+        }
+
+        //Tror vi bara kan köra den där startConnection();
+        //public void startServer()
+        //{
+        //    if (startConnection())
+        //    {
+                                
+        //    }
+        //}
     }
 }
