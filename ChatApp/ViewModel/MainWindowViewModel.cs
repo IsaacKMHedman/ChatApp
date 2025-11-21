@@ -183,13 +183,11 @@ namespace ChatApp.ViewModel
             _networkManager.FriendPort = friendPort;
             _networkManager.connectToFriend();
         }
-
         public void StartServer()
         {
             _networkManager.Message += "start connection in mainwindowviewmodel \n";
             _networkManager.startConnection();
         }
-
     }
 }
 

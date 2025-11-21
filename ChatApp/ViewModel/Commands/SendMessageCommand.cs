@@ -21,8 +21,6 @@ namespace ChatApp.ViewModel.Commands
         }
         public void Execute(object parameter)
         {
-            AcceptRequestWindow a = new AcceptRequestWindow();
-            a.ShowDialog();
             Debug.WriteLine("Sendmessagecommand  ...");
             parent.sendMessage();
         }

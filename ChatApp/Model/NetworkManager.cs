@@ -1,10 +1,12 @@
 ﻿using ChatApp.ViewModel.Commands;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,20 +18,31 @@ namespace ChatApp.Model
 {
     internal class NetworkManager : INotifyPropertyChanged
     {
+
         private NetworkStream stream;
         public string adress = "127.0.0.1:";
         string _Port = "";
         string _Name = "";
         string _Message = "";
         string _FriendPort = "";
-        //Kanske en boolean som sätts till true om man får en connection
+        TcpListener server;
+        TcpClient endPoint;
 
-        //Demot har ingen public networkmanager
-        public NetworkManager() {
+        //Konstruktorn kanske inte behövs
+        public NetworkManager()
+        {
 
         }
+        //Något sånt här? För att få en async funktion... Testade detta också endpoint blev TcpClient endPoint = async wait server.AcceptTcpClientAsync() Men då sprängdes programmet.
+        //Den väntade på något...
+        //Denna ersatt alltså startConnection under
+        //public async Task startConnection()
+        //{
 
-        public bool startConnection()
+        //}
+        //Det vi vill här (Om jag tolkar det rätt... runWhenListenerGotConnection ska...)
+        // : Model -> ViewModel -> View -> ViewModel -> ViewModel(Command) -> ViewModel -> Model. Hur gör man?
+        public void startConnection()
         {
 
             Task.Factory.StartNew(() =>
@@ -45,7 +58,7 @@ namespace ChatApp.Model
                     //Den här sitter och väntar tills någon kopplar upp sig
                     endPoint = server.AcceptTcpClient();
                     Message += "Connection accepted \n";
-                    runWhenListenerGotConnection();
+                    runWhenListenerGotConnection(endPoint);
                     handleConnection(endPoint);
                 }
                 catch
@@ -53,7 +66,7 @@ namespace ChatApp.Model
                     Message += "Catchar efter först try ... \n";
                 }
             });
-            return true;
+            
         }
         public bool connectToFriend()
         {
@@ -79,8 +92,13 @@ namespace ChatApp.Model
             return true;
         }
 
-        private void runWhenListenerGotConnection()
+        //Async task? Kanske inte
+        //Den här funktionen ska förhoppningsvis köra någonting i mainwindowviewmodel som i sin tur öppnar upp accept rutan som i sin tur skickar tillbaka till viewmodel vad man svara som skickar tillbaka hit
+        // Alltså : Model -> ViewModel -> View -> ViewModel -> ViewModel (Command) -> ViewModel -> Model. Hur gör man? 
+        public void runWhenListenerGotConnection(TcpClient endPoint)
         {
+            stream = endPoint.GetStream();
+            Message += "Inne i runwhenlistenergotconnection \n";
 
         }
         private void handleConnection(TcpClient endPoint)
