@@ -22,7 +22,10 @@ namespace ChatApp.ViewModel.Commands
             return true;
         }
 
-        public void Execute(object parameter) => parent.StartServer();
-
+        public void Execute(object parameter)
+        {
+            parent.setPortUser();
+            parent.StartServer();
+        }
     }
-}
+    }

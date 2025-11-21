@@ -1,0 +1,17 @@
+<Window x:Class="ChatApp.AcceptRequestWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ChatApp"
+        mc:Ignorable="d"
+        Title="AcceptRequestWindow" Height="400" Width="400">
+    <Grid Margin="0,0,0,14">
+		<StackPanel>
+            <TextBlock TextWrapping="Wrap" FontSize="20" Height="50" Text="Someone want to connect: "/>
+            <TextBlock TextWrapping="Wrap" FontSize="20" Height="50" Text="Placeholder User/Port osv..: "/>
+			<Button Content="Accept" Height="100"/>
+			<Button Content="Decline" Height="100"/>
+		</StackPanel>
+	</Grid>
+</Window>

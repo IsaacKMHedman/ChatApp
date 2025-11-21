@@ -22,6 +22,7 @@ namespace ChatApp.Model
         string _Name = "";
         string _Message = "";
         string _FriendPort = "";
+        //Kanske en boolean som sätts till true om man får en connection
 
         //Demot har ingen public networkmanager
         public NetworkManager() {
@@ -30,11 +31,9 @@ namespace ChatApp.Model
 
         public bool startConnection()
         {
-            
+
             Task.Factory.StartNew(() =>
             {
-                bool secondTry = false;
-                //var ipEndPoint = new IPEndPoint(IPAddress.Loopback, int.Parse(_Port));
                 TcpListener server = new TcpListener(IPAddress.Loopback, int.Parse(_Port));
                 TcpClient endPoint = null;
 
@@ -42,39 +41,47 @@ namespace ChatApp.Model
                 {
                     Message += "Inne i first try... ";
                     server.Start();
-                    Debug.WriteLine("Starting the listening..");
                     Message += "Starting the listening ... ";
+                    //Den här sitter och väntar tills någon kopplar upp sig
                     endPoint = server.AcceptTcpClient();
-                    Debug.WriteLine("Connection Accepted...");
                     Message += "Connection accepted \n";
+                    runWhenListenerGotConnection();
                     handleConnection(endPoint);
                 }
                 catch
                 {
-                    secondTry = true;
-                }
-                if (secondTry)
-                {
-                    endPoint = new TcpClient();
-
-                    try
-                    {
-                        Message += "Inne i second try... ";
-                        Debug.WriteLine("Connecting to the server... ");
-                        Message += "Connection to the server... ";
-                        endPoint.Connect(IPAddress.Loopback, int.Parse(_FriendPort));
-                        Debug.WriteLine("Connection established... ");
-                        Message += "Connection established \n";
-                        handleConnection(endPoint);
-
-                    }
-                    finally
-                    {
-                        endPoint.Close();
-                    }
+                    Message += "Catchar efter först try ... \n";
                 }
             });
             return true;
+        }
+        public bool connectToFriend()
+        {
+            Task.Factory.StartNew(() =>
+            {
+                TcpClient endPoint = new TcpClient();
+
+                try
+                {
+                    //@TODO här måste man kolla så att det finns en på den porten, hittas den inte ska det avbrytas..
+                    Message += "Looking for port " + _FriendPort;
+                    Message += "Connecting to the server... ";
+                    endPoint.Connect(IPAddress.Loopback, int.Parse(_FriendPort));
+                    Message += "Connection established \n";
+                    handleConnection(endPoint);
+                }
+                finally
+                {
+                    endPoint.Close();
+                }
+
+            });
+            return true;
+        }
+
+        private void runWhenListenerGotConnection()
+        {
+
         }
         private void handleConnection(TcpClient endPoint)
         {

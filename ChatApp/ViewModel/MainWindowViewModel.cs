@@ -17,17 +17,17 @@ namespace ChatApp.ViewModel
     internal class MainWindowViewModel : INotifyPropertyChanged
     {
 
-        
+
         private NetworkManager _networkManager { get; set; }
         private ICommand sendMessageButtonCommand;
         private ICommand setPort;
         private ICommand setNameUserCommand;
         private ICommand setFriendPortCommand;
-        private ICommand startServerCommand; 
+        private ICommand startServerCommand;
 
         //Det här är tänkt så att man ska kunna ändra texten i chatrutan. 
         public String ChatText => _networkManager.Message;
-        
+
 
         //Den här gör ingenting.. Kommenterar ut den
         //public String Port => _networkManager.Port;
@@ -47,8 +47,8 @@ namespace ChatApp.ViewModel
         public string SendMessageTextBox
         {
             get => sendMessageTextBox;
-            set 
-            { 
+            set
+            {
                 sendMessageTextBox = value; OnPropertyChanged(nameof(SendMessageTextBox));
             }
         }
@@ -58,7 +58,7 @@ namespace ChatApp.ViewModel
             get => nameUser;
             set
             {
-                nameUser = value; OnPropertyChanged(nameof(NameUser));  
+                nameUser = value; OnPropertyChanged(nameof(NameUser));
             }
         }
 
@@ -73,7 +73,7 @@ namespace ChatApp.ViewModel
 
         public MainWindowViewModel(NetworkManager networkManager)
         {
-            
+
             _networkManager = networkManager;
             _networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
 
@@ -81,7 +81,7 @@ namespace ChatApp.ViewModel
 
         private void NetworkManagerOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == nameof(NetworkManager.Message))
+            if (e.PropertyName == nameof(NetworkManager.Message))
             {
                 OnPropertyChanged(nameof(ChatText));
             }
@@ -95,24 +95,9 @@ namespace ChatApp.ViewModel
         }
 
 
-        public ICommand SetPort
+        public ICommand SendMessageButtonCommand
         {
             get
-            {
-                if (setPort == null)
-                {
-                    setPort = new SetPortCommand(this);
-                }
-                return setPort;
-            }
-            set
-            {
-                setPort = value;
-            }
-        }
-        public ICommand SendMessageButtonCommand
-        {  
-            get 
             {
                 if (sendMessageButtonCommand == null)
                 {
@@ -136,16 +121,16 @@ namespace ChatApp.ViewModel
                 }
                 return setNameUserCommand;
             }
-            set 
+            set
             {
                 setNameUserCommand = value;
             }
         }
         public ICommand SetFriendPortCommand
         {
-            get 
+            get
             {
-                if(setFriendPortCommand == null)
+                if (setFriendPortCommand == null)
                 {
                     setFriendPortCommand = new SetFriendPortCommand(this);
                 }
@@ -196,22 +181,15 @@ namespace ChatApp.ViewModel
         public void setPortFriend()
         {
             _networkManager.FriendPort = friendPort;
-            Debug.WriteLine(friendPort);
+            _networkManager.connectToFriend();
         }
-        
+
         public void StartServer()
         {
             _networkManager.Message += "start connection in mainwindowviewmodel \n";
             _networkManager.startConnection();
         }
 
-        //Tror vi bara kan köra den där startConnection();
-        //public void startServer()
-        //{
-        //    if (startConnection())
-        //    {
-                                
-        //    }
-        //}
     }
 }
+
