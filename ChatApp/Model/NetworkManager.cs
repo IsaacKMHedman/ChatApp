@@ -18,6 +18,8 @@ namespace ChatApp.Model
 {
     internal class NetworkManager : INotifyPropertyChanged
     {
+        string tessss;
+        private string a;
         private string test;
         private NetworkStream stream;
         public string adress = "127.0.0.1:";
