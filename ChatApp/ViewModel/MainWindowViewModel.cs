@@ -17,7 +17,6 @@ namespace ChatApp.ViewModel
     internal class MainWindowViewModel : INotifyPropertyChanged
     {
 
-
         private NetworkManager _networkManager { get; set; }
         private ICommand sendMessageButtonCommand;
         private ICommand setPort;
@@ -72,7 +71,7 @@ namespace ChatApp.ViewModel
 
             _networkManager = networkManager;
             _networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
-
+            _networkManager.ConnectionRequested += NetworkManagerConnectionRequested;
         }
 
         private void NetworkManagerOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -81,6 +80,19 @@ namespace ChatApp.ViewModel
             {
                 OnPropertyChanged(nameof(ChatText));
             }
+        }
+        private void NetworkManagerConnectionRequested(object? sender, ConnectionRequestedEventArgs e)
+        {
+            //Async
+            Application.Current.Dispatcher.BeginInvoke(new Action (() =>
+            {
+                var a = new AcceptRequestWindow();
+                a.ShowDialog();
+                _networkManager.Message += "Connection Requested form: " + e.RemoteEndPoint;
+
+            }));
+            
+            
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

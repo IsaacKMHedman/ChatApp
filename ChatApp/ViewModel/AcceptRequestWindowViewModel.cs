@@ -3,6 +3,7 @@ using ChatApp.ViewModel.Commands;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -12,7 +13,7 @@ using System.Windows.Input;
 
 namespace ChatApp.ViewModel
 {
-    internal class AcceptRequestWindowViewModel :INotifyPropertyChanged
+    internal class AcceptRequestWindowViewModel : INotifyPropertyChanged
     {
 
         private NetworkManager _networkManager;
@@ -57,6 +58,9 @@ namespace ChatApp.ViewModel
         }
         public void acceptRequestFunction()
         {
+            //Det fungerar, men jag tror det är en annan networkmanager, för man skapar en ny när man skapar rutan...
+            //Behöver kika på det om man kan stoppa in en networkmanager
+            Debug.WriteLine("Test");
             _networkManager.Message += "ACCEPTED";
         }
     }

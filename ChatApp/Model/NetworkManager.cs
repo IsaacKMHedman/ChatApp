@@ -18,6 +18,7 @@ namespace ChatApp.Model
 {
     internal class NetworkManager : INotifyPropertyChanged
     {
+        public event EventHandler<ConnectionRequestedEventArgs>? ConnectionRequested;
         private NetworkStream stream;
         public string adress = "127.0.0.1:";
         string _Port = "";
@@ -89,8 +90,10 @@ namespace ChatApp.Model
         // Alltså : Model -> ViewModel -> View -> ViewModel -> ViewModel (Command) -> ViewModel -> Model. Hur gör man? 
         public void runWhenListenerGotConnection(TcpClient endPoint)
         {
-            stream = endPoint.GetStream();
-            Message += "Inne i runwhenlistenergotconnection \n";
+            if(endPoint.Client.RemoteEndPoint is IPEndPoint remoteEndPoint)
+            {
+                OnConnectionRequested(new ConnectionRequestedEventArgs(remoteEndPoint));
+            }
 
         }
         private void handleConnection(TcpClient endPoint)
@@ -155,6 +158,19 @@ namespace ChatApp.Model
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
         }
-
+        protected void OnConnectionRequested(ConnectionRequestedEventArgs e)
+        {
+            ConnectionRequested?.Invoke(this, e);
+        }
     }
+    internal class ConnectionRequestedEventArgs : EventArgs
+    {
+        public ConnectionRequestedEventArgs(IPEndPoint remoteEndPoint)
+        {
+            RemoteEndPoint = remoteEndPoint;
+        }
+
+        public IPEndPoint RemoteEndPoint { get; }
+    }
+
 }

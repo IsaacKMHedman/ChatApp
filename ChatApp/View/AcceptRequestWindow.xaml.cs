@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ChatApp.Model;
+using ChatApp.ViewModel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -13,7 +15,7 @@ namespace ChatApp
         public AcceptRequestWindow()
         {
             InitializeComponent();
-
+            DataContext = new AcceptRequestWindowViewModel(new NetworkManager());
         }
     }
 }

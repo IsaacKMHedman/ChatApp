@@ -10,7 +10,7 @@
 		<StackPanel>
             <TextBlock TextWrapping="Wrap" FontSize="20" Height="50" Text="Someone want to connect: "/>
             <TextBlock TextWrapping="Wrap" FontSize="20" Height="50" Text="Placeholder User/Port osv..: "/>
-			<Button Content="Accept" Height="100"/>
+            <Button Content="Accept" Command="{Binding AcceptRequest}" Height="100"/>
 			<Button Content="Decline" Height="100"/>
 		</StackPanel>
 	</Grid>
