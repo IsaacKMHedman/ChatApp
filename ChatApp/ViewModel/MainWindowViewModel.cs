@@ -28,10 +28,6 @@ namespace ChatApp.ViewModel
         //Det här är tänkt så att man ska kunna ändra texten i chatrutan. 
         public String ChatText => _networkManager.Message;
 
-
-        //Den här gör ingenting.. Kommenterar ut den
-        //public String Port => _networkManager.Port;
-
         private String portVm;
         private String nameUser;
         private String friendPort;

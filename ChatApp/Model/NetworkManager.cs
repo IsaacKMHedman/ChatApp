@@ -24,21 +24,14 @@ namespace ChatApp.Model
         string _Name = "";
         string _Message = "";
         string _FriendPort = "";
-        TcpListener server;
-        TcpClient endPoint;
+
 
         //Konstruktorn kanske inte behövs
         public NetworkManager()
         {
 
         }
-        //Något sånt här? För att få en async funktion... Testade detta också endpoint blev TcpClient endPoint = async wait server.AcceptTcpClientAsync() Men då sprängdes programmet.
-        //Den väntade på något...
-        //Denna ersatt alltså startConnection under
-        //public async Task startConnection()
-        //{
 
-        //}
         //Det vi vill här (Om jag tolkar det rätt... runWhenListenerGotConnection ska...)
         // : Model -> ViewModel -> View -> ViewModel -> ViewModel(Command) -> ViewModel -> Model. Hur gör man?
         public void startConnection()
