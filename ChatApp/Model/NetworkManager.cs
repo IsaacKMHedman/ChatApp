@@ -18,6 +18,8 @@ namespace ChatApp.Model
 {
     internal class NetworkManager : INotifyPropertyChanged
     {
+
+        private TaskCompletionSource<bool> _waitForConnectDecision;
         public event EventHandler<ConnectionRequestedEventArgs>? ConnectionRequested;
         private NetworkStream stream;
         public string adress = "127.0.0.1:";
@@ -51,8 +53,25 @@ namespace ChatApp.Model
                     //Den här sitter och väntar tills någon kopplar upp sig
                     endPoint = server.AcceptTcpClient();
                     Message += "Connection accepted \n";
+                    var tcs = new TaskCompletionSource<bool>();
+                    _waitForConnectDecision = tcs;
+
                     runWhenListenerGotConnection(endPoint);
-                    handleConnection(endPoint);
+
+                    //Väntar på att användaren ska klicka accept/decline
+                    bool accepted = tcs.Task.Result; //Blockerar endast denna background
+
+                    if (accepted)
+                    {
+                        Message += "Accepted \n";
+                        handleConnection(endPoint);
+
+                    }
+                    else
+                    {
+                        Message += "Declined";
+                        endPoint.Close();
+                    }
                 }
                 catch
                 {
@@ -94,7 +113,6 @@ namespace ChatApp.Model
             {
                 OnConnectionRequested(new ConnectionRequestedEventArgs(remoteEndPoint));
             }
-
         }
         private void handleConnection(TcpClient endPoint)
         {
@@ -109,6 +127,16 @@ namespace ChatApp.Model
             }
         }
 
+        public void AcceptConnection()
+        {
+            Message += "Inne i AcceptConnection \n ";
+            _waitForConnectDecision?.TrySetResult(true);
+        }
+        public void RejectConnection()
+        {
+            Message += "Inne i rejectconnection \n ";
+            _waitForConnectDecision?.TrySetResult(false);
+        }
         public string Port 
         {
             get { return _Port; }

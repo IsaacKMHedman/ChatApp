@@ -19,7 +19,7 @@ namespace ChatApp.ViewModel
         private NetworkManager _networkManager;
         private ICommand acceptRequest;
         private ICommand rejectRequest;
-
+        public Action? CloseAction { get; set; }
         public AcceptRequestWindowViewModel(NetworkManager networkManager) {
             _networkManager = networkManager;
             _networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
@@ -56,12 +56,36 @@ namespace ChatApp.ViewModel
                 acceptRequest = value;
             }
         }
+        public ICommand RejectRequest
+        {
+            get
+            {
+                if (rejectRequest == null)
+                {
+                    rejectRequest = new RejectRequestCommand(this);
+                }
+                return rejectRequest;
+
+            }
+            set
+            {
+                rejectRequest = value;
+            }
+        }
+
+        public void rejectRequestFunction()
+        {
+            _networkManager.RejectConnection();
+            CloseAction?.Invoke();
+        }
         public void acceptRequestFunction()
         {
             //Det fungerar, men jag tror det är en annan networkmanager, för man skapar en ny när man skapar rutan...
             //Behöver kika på det om man kan stoppa in en networkmanager
-            Debug.WriteLine("Test");
-            _networkManager.Message += "ACCEPTED";
+            //Nu går den bara vidare och sedan in i handleconnection. 
+            _networkManager.AcceptConnection();
+            //Detta måste vi fråga om det är ok... Det ligger lowkey i codebehind
+            CloseAction?.Invoke();
         }
     }
 }

@@ -1,21 +1,21 @@
 ﻿using ChatApp.Model;
 using ChatApp.ViewModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace ChatApp
 {
     public partial class AcceptRequestWindow : Window
     {
-        public AcceptRequestWindow()
+        //Behövdes göras till internal för att kunna ta in networkManager. Nu fungerar det. 
+        private NetworkManager _networkManager;
+        internal AcceptRequestWindow(NetworkManager networkManager)
         {
+            _networkManager = networkManager;
             InitializeComponent();
-            DataContext = new AcceptRequestWindowViewModel(new NetworkManager());
+            var vm = new AcceptRequestWindowViewModel(networkManager);
+            DataContext = vm;
+
+            vm.CloseAction = () => this.Close();
         }
     }
 }

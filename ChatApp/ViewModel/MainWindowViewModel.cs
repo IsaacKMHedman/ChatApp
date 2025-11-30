@@ -68,7 +68,6 @@ namespace ChatApp.ViewModel
 
         public MainWindowViewModel(NetworkManager networkManager)
         {
-
             _networkManager = networkManager;
             _networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
             _networkManager.ConnectionRequested += NetworkManagerConnectionRequested;
@@ -86,7 +85,7 @@ namespace ChatApp.ViewModel
             //Async
             Application.Current.Dispatcher.BeginInvoke(new Action (() =>
             {
-                var a = new AcceptRequestWindow();
+                var a = new AcceptRequestWindow(_networkManager);
                 a.ShowDialog();
                 _networkManager.Message += "Connection Requested form: " + e.RemoteEndPoint;
 
