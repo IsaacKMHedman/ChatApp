@@ -172,8 +172,9 @@ namespace ChatApp.ViewModel
 
         public void sendMessage()
         {
-            _networkManager.Message = sendMessageTextBox;
-            Debug.WriteLine(sendMessageTextBox);
+            _networkManager.SendChatMessage(sendMessageTextBox);
+            sendMessageTextBox = "";
+            OnPropertyChanged("SendMessageTextBox");
         }
 
         public void setPortUser()

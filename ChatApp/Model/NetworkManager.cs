@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Printing;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -113,11 +114,9 @@ namespace ChatApp.Model
             });
             return true;
         }
-
-        //Async task? Kanske inte
-        //Den här funktionen ska förhoppningsvis köra någonting i mainwindowviewmodel som i sin tur öppnar upp accept rutan som i sin tur skickar tillbaka till viewmodel vad man svara som skickar tillbaka hit
-        // Alltså : Model -> ViewModel -> View -> ViewModel -> ViewModel (Command) -> ViewModel -> Model. Hur gör man? 
-        //Här blir på serversidan så att säga. 
+        
+        //Okej såhär är det. Listenern får namnet på den som försöker. Därför har vi det.
+        //Vi måste skicka tillbaka namnet på listenern till den andre
         public void runWhenListenerGotConnection(TcpClient endPoint)
         {
             stream = endPoint.GetStream();
@@ -138,8 +137,13 @@ namespace ChatApp.Model
             {
                 var buffer = new byte[1024];
                 int received = stream.Read(buffer, 0, 1024);
+                if (received == 0)
+                {
+                    Message += "Anslutning avslutad \n";
+                    break;
+                }
                 var message = Encoding.UTF8.GetString(buffer);
-                this.Message = message;
+                this.Message += _friendName + ": " + message;
             }
         }
 
@@ -153,6 +157,17 @@ namespace ChatApp.Model
             Message += "Inne i rejectconnection \n ";
             _waitForConnectDecision?.TrySetResult(false);
         }
+
+        public void SendChatMessage(string text)
+        {
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                var temp = text + "\n";
+                var bytes = Encoding.UTF8.GetBytes(temp);
+                stream.Write(bytes, 0, bytes.Length);
+            }
+        }
+
         public string Port 
         {
             get { return _Port; }
