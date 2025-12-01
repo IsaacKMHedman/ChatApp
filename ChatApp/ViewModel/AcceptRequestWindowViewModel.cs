@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,10 +20,14 @@ namespace ChatApp.ViewModel
         private NetworkManager _networkManager;
         private ICommand acceptRequest;
         private ICommand rejectRequest;
-        public Action? CloseAction { get; set; }
-        public AcceptRequestWindowViewModel(NetworkManager networkManager) {
+        //Är action ok?
+        string FriendPort { get; }
+
+        public AcceptRequestWindowViewModel(NetworkManager networkManager, IPEndPoint endPoint) {
             _networkManager = networkManager;
             _networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
+
+            FriendPort = _networkManager.FriendPort;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -80,12 +85,12 @@ namespace ChatApp.ViewModel
         }
         public void acceptRequestFunction()
         {
-            //Det fungerar, men jag tror det är en annan networkmanager, för man skapar en ny när man skapar rutan...
-            //Behöver kika på det om man kan stoppa in en networkmanager
-            //Nu går den bara vidare och sedan in i handleconnection. 
+
             _networkManager.AcceptConnection();
             //Detta måste vi fråga om det är ok... Det ligger lowkey i codebehind
             CloseAction?.Invoke();
+
         }
+        public event Action? CloseAction;
     }
 }

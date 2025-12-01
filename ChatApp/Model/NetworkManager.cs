@@ -28,7 +28,6 @@ namespace ChatApp.Model
         string _Message = "";
         string _FriendPort = "";
 
-
         //Konstruktorn kanske inte behövs
         public NetworkManager()
         {
@@ -111,6 +110,7 @@ namespace ChatApp.Model
         {
             if(endPoint.Client.RemoteEndPoint is IPEndPoint remoteEndPoint)
             {
+                _FriendPort = remoteEndPoint.Port.ToString();
                 OnConnectionRequested(new ConnectionRequestedEventArgs(remoteEndPoint));
             }
         }

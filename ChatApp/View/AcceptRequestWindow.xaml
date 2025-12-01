@@ -9,7 +9,7 @@
     <Grid Margin="0,0,0,14">
 		<StackPanel>
             <TextBlock TextWrapping="Wrap" FontSize="20" Height="50" Text="Someone want to connect: "/>
-            <TextBlock TextWrapping="Wrap" FontSize="20" Height="50" Text="Placeholder User/Port osv..: "/>
+            <TextBlock TextWrapping="Wrap" FontSize="20" Height="50" Text="{Binding FriendPort, UpdateSourceTrigger=PropertyChanged}"/>
             <Button Content="Accept" Command="{Binding AcceptRequest}" Height="100"/>
             <Button Content="Decline" Command="{Binding RejectRequest}" Height="100"/>
 		</StackPanel>
