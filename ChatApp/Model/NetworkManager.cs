@@ -26,7 +26,7 @@ namespace ChatApp.Model
         string _Port = "";
         string _Name = "";
         string _Message = "";
-        string _FriendPort = "";
+        string _friendPort = "";
         string _friendName = "";
 
 
@@ -83,7 +83,7 @@ namespace ChatApp.Model
             
         }
 
-        //Här är där man connectar som endpoint. Här skulle man kunna skicka med meddelanden tex.
+        //Här är där man connectar som endpoint. Här skickar vi även med namnet på den som försöker ansluta.
         public bool connectToFriend()
         {
             Task.Factory.StartNew(() =>
@@ -93,13 +93,15 @@ namespace ChatApp.Model
                 try
                 {
                     //@TODO här måste man kolla så att det finns en på den porten, hittas den inte ska det avbrytas..
-                    Message += "Looking for port " + _FriendPort;
+                    Message += "Looking for port " + _friendPort;
                     Message += "Connecting to the server... ";
-                    endPoint.Connect(IPAddress.Loopback, int.Parse(_FriendPort));
+                    endPoint.Connect(IPAddress.Loopback, int.Parse(_friendPort));
                     stream = endPoint.GetStream();
-                    var nameBytes = Encoding.UTF8.GetBytes(Name);
-                    stream.Write(nameBytes, 0, nameBytes.Length);
-                    
+                    using var sender = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);
+                    sender.Write(Name);
+                    sender.Write(Port);
+                    sender.Flush();
+
                     Message += "Connection established \n";
                     handleConnection(endPoint);
                 }
@@ -119,16 +121,12 @@ namespace ChatApp.Model
         public void runWhenListenerGotConnection(TcpClient endPoint)
         {
             stream = endPoint.GetStream();
-            var buffer = new byte[1024];
-            int received = stream.Read(buffer, 0, buffer.Length);
-
-            var endPointName = Encoding.UTF8.GetString(buffer, 0, received);
-            FriendName = endPointName; //OnPropertyChanged
-
+            using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+            FriendName = reader.ReadString();
+            FriendPort = reader.ReadString();
 
             if (endPoint.Client.RemoteEndPoint is IPEndPoint remoteEndPoint)
             {
-                _FriendPort = remoteEndPoint.Port.ToString();
                 OnConnectionRequested(new ConnectionRequestedEventArgs(remoteEndPoint));
             }
         }
@@ -188,10 +186,10 @@ namespace ChatApp.Model
 
         public string FriendPort
         {
-            get { return _FriendPort; }
+            get { return _friendPort; }
             set
             {
-                _FriendPort = value;
+                _friendPort = value;
                 OnPropertyChanged();
             }
         }

@@ -20,9 +20,8 @@ namespace ChatApp.ViewModel
         private NetworkManager _networkManager;
         private ICommand acceptRequest;
         private ICommand rejectRequest;
-        //Är action ok?
-        private string _friendPort;
         public string FriendName => _networkManager.FriendName;
+        public string FriendPort => _networkManager.FriendPort;
         
 
         public AcceptRequestWindowViewModel(NetworkManager networkManager) {

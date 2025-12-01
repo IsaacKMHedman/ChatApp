@@ -5,11 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChatApp"
         mc:Ignorable="d"
-        Title="AcceptRequestWindow" Height="400" Width="400">
+        Title="AcceptRequestWindow" Height="500" Width="500">
     <Grid Margin="0,0,0,14">
 		<StackPanel>
             <TextBlock TextWrapping="Wrap" FontSize="20" Height="50" Text="Someone want to connect: "/>
             <TextBlock TextWrapping="Wrap" FontSize="20" Height="50" Text="{Binding FriendName}"/>
+            <TextBlock TextWrapping="Wrap" FontSize="20" Height="50" Text="Port: "/>
+            <TextBlock TextWrapping="Wrap" FontSize="20" Height="50" Text="{Binding FriendPort}"/>
             <Button Content="Accept" Command="{Binding AcceptRequest}" Height="100"/>
             <Button Content="Decline" Command="{Binding RejectRequest}" Height="100"/>
 		</StackPanel>
