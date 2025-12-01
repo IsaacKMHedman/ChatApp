@@ -27,6 +27,9 @@ namespace ChatApp.Model
         string _Name = "";
         string _Message = "";
         string _FriendPort = "";
+        string _friendName = "";
+
+
 
         //Konstruktorn kanske inte behövs
         public NetworkManager()
@@ -79,6 +82,8 @@ namespace ChatApp.Model
             });
             
         }
+
+        //Här är där man connectar som endpoint. Här skulle man kunna skicka med meddelanden tex.
         public bool connectToFriend()
         {
             Task.Factory.StartNew(() =>
@@ -91,6 +96,10 @@ namespace ChatApp.Model
                     Message += "Looking for port " + _FriendPort;
                     Message += "Connecting to the server... ";
                     endPoint.Connect(IPAddress.Loopback, int.Parse(_FriendPort));
+                    stream = endPoint.GetStream();
+                    var nameBytes = Encoding.UTF8.GetBytes(Name);
+                    stream.Write(nameBytes, 0, nameBytes.Length);
+                    
                     Message += "Connection established \n";
                     handleConnection(endPoint);
                 }
@@ -106,9 +115,18 @@ namespace ChatApp.Model
         //Async task? Kanske inte
         //Den här funktionen ska förhoppningsvis köra någonting i mainwindowviewmodel som i sin tur öppnar upp accept rutan som i sin tur skickar tillbaka till viewmodel vad man svara som skickar tillbaka hit
         // Alltså : Model -> ViewModel -> View -> ViewModel -> ViewModel (Command) -> ViewModel -> Model. Hur gör man? 
+        //Här blir på serversidan så att säga. 
         public void runWhenListenerGotConnection(TcpClient endPoint)
         {
-            if(endPoint.Client.RemoteEndPoint is IPEndPoint remoteEndPoint)
+            stream = endPoint.GetStream();
+            var buffer = new byte[1024];
+            int received = stream.Read(buffer, 0, buffer.Length);
+
+            var endPointName = Encoding.UTF8.GetString(buffer, 0, received);
+            FriendName = endPointName; //OnPropertyChanged
+
+
+            if (endPoint.Client.RemoteEndPoint is IPEndPoint remoteEndPoint)
             {
                 _FriendPort = remoteEndPoint.Port.ToString();
                 OnConnectionRequested(new ConnectionRequestedEventArgs(remoteEndPoint));
@@ -177,6 +195,19 @@ namespace ChatApp.Model
                 OnPropertyChanged();
             }
         }
+        public string FriendName
+        {
+            get => _friendName;
+            set
+            {
+                if (_friendName != value)
+                {
+                    _friendName = value;
+                    OnPropertyChanged(nameof(FriendName));
+                }
+            }
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = "")

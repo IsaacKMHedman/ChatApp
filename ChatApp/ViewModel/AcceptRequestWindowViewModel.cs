@@ -21,13 +21,13 @@ namespace ChatApp.ViewModel
         private ICommand acceptRequest;
         private ICommand rejectRequest;
         //Är action ok?
-        string FriendPort { get; }
+        private string _friendPort;
+        public string FriendName => _networkManager.FriendName;
+        
 
-        public AcceptRequestWindowViewModel(NetworkManager networkManager, IPEndPoint endPoint) {
+        public AcceptRequestWindowViewModel(NetworkManager networkManager) {
             _networkManager = networkManager;
             _networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
-
-            FriendPort = _networkManager.FriendPort;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

@@ -86,9 +86,8 @@ namespace ChatApp.ViewModel
             Application.Current.Dispatcher.BeginInvoke(new Action (() =>
             {
                 var a = new AcceptRequestWindow();
-                var vm = new AcceptRequestWindowViewModel(_networkManager, e.RemoteEndPoint);
+                var vm = new AcceptRequestWindowViewModel(_networkManager);
                 a.DataContext = vm;
-                
 
                 vm.CloseAction += () => a.Close();
 
