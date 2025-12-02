@@ -1,19 +1,12 @@
-﻿using ChatApp.ViewModel.Commands;
-using System;
+﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Printing;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading;
+using System.Text.Json;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Media.TextFormatting;
-using System.Xml.Schema;
 
 namespace ChatApp.Model
 {
@@ -29,7 +22,8 @@ namespace ChatApp.Model
         string _Message = "";
         string _friendPort = "";
         string _friendName = "";
-
+        private StreamWriter writer;
+        private StreamReader reader;
 
 
         //Konstruktorn kanske inte behövs
@@ -56,10 +50,14 @@ namespace ChatApp.Model
                     //Den här sitter och väntar tills någon kopplar upp sig
                     endPoint = server.AcceptTcpClient();
                     Message += "Connection accepted \n";
+                    reader = new StreamReader(endPoint.GetStream());
+                    writer = new StreamWriter(endPoint.GetStream());
+
                     var tcs = new TaskCompletionSource<bool>();
                     _waitForConnectDecision = tcs;
 
                     runWhenListenerGotConnection(endPoint);
+
 
                     //Väntar på att användaren ska klicka accept/decline
                     bool accepted = tcs.Task.Result; //Blockerar endast denna background
@@ -67,7 +65,8 @@ namespace ChatApp.Model
                     if (accepted)
                     {
                         Message += "Accepted \n";
-                        handleConnection(endPoint);
+                        _ = ListenForMessages(reader);
+                        //handleConnection(endPoint);
 
                     }
                     else
@@ -81,30 +80,37 @@ namespace ChatApp.Model
                     Message += "Catchar efter först try ... \n";
                 }
             });
-            
+
         }
 
         //Här är där man connectar som endpoint. Här skickar vi även med namnet på den som försöker ansluta.
         public bool connectToFriend()
         {
-            Task.Factory.StartNew(() =>
+            Task.Factory.StartNew(async () =>
             {
                 TcpClient endPoint = new TcpClient();
 
                 try
                 {
+
                     //@TODO här måste man kolla så att det finns en på den porten, hittas den inte ska det avbrytas..
                     Message += "Looking for port " + _friendPort;
                     Message += "Connecting to the server... ";
                     endPoint.Connect(IPAddress.Loopback, int.Parse(_friendPort));
                     stream = endPoint.GetStream();
+                    reader = new StreamReader(stream);
+                    writer = new StreamWriter(stream);
+
+
+                    //Det här skickar bara med namn och så i acceptrutan
                     using var sender = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);
                     sender.Write(Name);
                     sender.Write(Port);
                     sender.Flush();
 
                     Message += "Connection established \n";
-                    handleConnection(endPoint);
+                    await ListenForMessages(reader);
+                    //handleConnection(endPoint);
                 }
                 finally
                 {
@@ -114,7 +120,7 @@ namespace ChatApp.Model
             });
             return true;
         }
-        
+
         //Okej såhär är det. Listenern får namnet på den som försöker. Därför har vi det.
         //Vi måste skicka tillbaka namnet på listenern till den andre
         public void runWhenListenerGotConnection(TcpClient endPoint)
@@ -127,23 +133,6 @@ namespace ChatApp.Model
             if (endPoint.Client.RemoteEndPoint is IPEndPoint remoteEndPoint)
             {
                 OnConnectionRequested(new ConnectionRequestedEventArgs(remoteEndPoint));
-            }
-        }
-        private void handleConnection(TcpClient endPoint)
-        {
-            stream = endPoint.GetStream();
-            Message += "Inne i Handle connection ... \n ";
-            while (true)
-            {
-                var buffer = new byte[1024];
-                int received = stream.Read(buffer, 0, 1024);
-                if (received == 0)
-                {
-                    Message += "Anslutning avslutad \n";
-                    break;
-                }
-                var message = Encoding.UTF8.GetString(buffer);
-                this.Message += _friendName + ": " + message;
             }
         }
 
@@ -167,17 +156,40 @@ namespace ChatApp.Model
                 stream.Write(bytes, 0, bytes.Length);
             }
         }
+        public async Task SendJson(ChatMessage msg)
+        {
+            string json = JsonSerializer.Serialize(msg);
+            await writer.WriteLineAsync(json);
+            await writer.FlushAsync();
+        }
 
-        public string Port 
+        public event Action<ChatMessage> MessageReceived;
+        private async Task ListenForMessages(StreamReader reader)
+        {
+            while (true)
+            {
+                string? json = await reader.ReadLineAsync();
+                if (json == null)
+                {
+                    break;
+                }
+                var msg = JsonSerializer.Deserialize<ChatMessage>(json);
+                if (msg != null)
+                {
+                    MessageReceived?.Invoke(msg);
+                }
+            }
+        }
+        public string Port
         {
             get { return _Port; }
-            set 
-            { 
+            set
+            {
                 _Port = value;
                 OnPropertyChanged();
             }
         }
-      
+
         public string Name
         {
             get { return _Name; }

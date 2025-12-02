@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Text.Json;
 
 namespace ChatApp.ViewModel
 {
@@ -66,13 +67,24 @@ namespace ChatApp.ViewModel
             }
         }
 
+        public ObservableCollection<ChatMessage> Messages { get; set; }
         public MainWindowViewModel(NetworkManager networkManager)
         {
             _networkManager = networkManager;
             _networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
             _networkManager.ConnectionRequested += NetworkManagerConnectionRequested;
+
+            Messages = new ObservableCollection<ChatMessage>();
+            _networkManager.MessageReceived += OnMessageReceived;
         }
 
+        private void OnMessageReceived(ChatMessage msg)
+        {
+            App.Current.Dispatcher.BeginInvoke(() =>
+            {
+                Messages.Add(msg);
+            });
+        }
         private void NetworkManagerOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(NetworkManager.Message))
@@ -83,7 +95,7 @@ namespace ChatApp.ViewModel
         private void NetworkManagerConnectionRequested(object? sender, ConnectionRequestedEventArgs e)
         {
             //Async
-            Application.Current.Dispatcher.BeginInvoke(new Action (() =>
+            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
                 var a = new AcceptRequestWindow();
                 var vm = new AcceptRequestWindowViewModel(_networkManager);
@@ -96,8 +108,8 @@ namespace ChatApp.ViewModel
                 _networkManager.Message += "Connection Requested form: " + e.RemoteEndPoint;
 
             }));
-            
-            
+
+
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -170,11 +182,20 @@ namespace ChatApp.ViewModel
             }
         }
 
-        public void sendMessage()
+        public async Task sendMessageAsync()
         {
-            _networkManager.SendChatMessage(sendMessageTextBox);
+            var msg = new ChatMessage
+            {
+                Name = NameUser,
+                Message = sendMessageTextBox,
+                Date = DateTime.Now
+            };
+
+            Messages.Add(msg);
             sendMessageTextBox = "";
-            OnPropertyChanged("SendMessageTextBox");
+
+            await _networkManager.SendJson(msg);
+
         }
 
         public void setPortUser()

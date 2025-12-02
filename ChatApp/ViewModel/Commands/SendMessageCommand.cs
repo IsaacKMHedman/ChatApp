@@ -22,7 +22,7 @@ namespace ChatApp.ViewModel.Commands
         public void Execute(object parameter)
         {
             Debug.WriteLine("Sendmessagecommand  ...");
-            parent.sendMessage();
+            parent.sendMessageAsync();
         }
     }
 }

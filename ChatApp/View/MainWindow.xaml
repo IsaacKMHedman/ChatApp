@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="600" Width="800">
     <Grid Margin="0,0,0,14">
-        <StackPanel Margin="10,10,495,271">
+        <StackPanel Margin="10,10,495,240">
             <TextBox x:Name="UsernameTextBox" TextWrapping="Wrap" Text="{Binding Path=NameUser, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" Height="40"/>
             <Button Content="Set username" Click="SetUsernameButton" Command="{Binding SetNameUserCommand}" Height="46"/>
             <TextBox TextWrapping="Wrap" Height="40" Text="{Binding Path=PortVm, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}"/>
@@ -15,7 +15,7 @@
             <TextBox TextWrapping="Wrap" Text="{Binding Path=FriendPort, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" Height="40"/>
             <Button Content="Connect to friend" Command="{Binding SetFriendPortCommand}" Height="43"/>
             <TextBox TextWrapping="Wrap" Text="Disconnected"/>
-            <Button Content="Disconnect"/>
+            <Button Content="Disconnect" Height="24"/>
         </StackPanel>
         <StackPanel Margin="320,279,0,15">
             <TextBox TextWrapping="Wrap" Text="{Binding Path=SendMessageTextBox, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" Width="488" Height="68" TextChanged="TextBox_TextChanged_1"/>
@@ -23,12 +23,30 @@
             <Button Content="Ping" Height="45" Click="PingButtonClick"/>
         </StackPanel>
         <StackPanel Margin="8,340,492,-46">
-            <Button Content="Chat History" Height="85"/>
-            <Button Content="Go back to chat" Height="75"/>
+            <Button Content="Chat History" Height="62"/>
+            <Button Content="Go back to chat" Height="59"/>
         </StackPanel>
-        <StackPanel Margin="320,24,0,305" Background="AliceBlue">
-            <TextBlock TextWrapping="Wrap" Text="{Binding ChatText, UpdateSourceTrigger=PropertyChanged}" Height="400"/>
-        </StackPanel>
+        <ItemsControl ItemsSource="{Binding Messages}" Margin="320,10,0,296">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Vertical"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Date}"/>
+                        <TextBlock Text=": "/>
+                        <TextBlock Text="{Binding Name}"/>
+                        <TextBlock Text=": "/>
+                        <TextBlock Text="{Binding Message}"/>
+
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
     </Grid>
 
 

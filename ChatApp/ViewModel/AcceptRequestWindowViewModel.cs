@@ -22,9 +22,10 @@ namespace ChatApp.ViewModel
         private ICommand rejectRequest;
         public string FriendName => _networkManager.FriendName;
         public string FriendPort => _networkManager.FriendPort;
-        
 
-        public AcceptRequestWindowViewModel(NetworkManager networkManager) {
+
+        public AcceptRequestWindowViewModel(NetworkManager networkManager)
+        {
             _networkManager = networkManager;
             _networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
         }
@@ -86,7 +87,6 @@ namespace ChatApp.ViewModel
         {
 
             _networkManager.AcceptConnection();
-            //Detta måste vi fråga om det är ok... Det ligger lowkey i codebehind
             CloseAction?.Invoke();
 
         }
