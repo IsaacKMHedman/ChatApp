@@ -20,6 +20,10 @@ namespace ChatApp.ViewModel
         private NetworkManager _networkManager;
         private ICommand acceptRequest;
         private ICommand rejectRequest;
+        public event Action? CloseAction;
+        public event Action? AcceptAction;
+        public event Action? RejectAction;
+
         public string FriendName => _networkManager.FriendName;
         public string FriendPort => _networkManager.FriendPort;
 
@@ -80,16 +84,18 @@ namespace ChatApp.ViewModel
 
         public void rejectRequestFunction()
         {
+            RejectAction?.Invoke();
             _networkManager.RejectConnection();
             CloseAction?.Invoke();
         }
+
         public void acceptRequestFunction()
         {
 
             _networkManager.AcceptConnection();
             CloseAction?.Invoke();
-
+            AcceptAction?.Invoke();
         }
-        public event Action? CloseAction;
+        
     }
 }

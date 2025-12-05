@@ -14,8 +14,8 @@
             <Button Content="Set portnumber" Command="{Binding StartServerCommand}" Height="43"/>
             <TextBox TextWrapping="Wrap" Text="{Binding Path=FriendPort, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" Height="40"/>
             <Button Content="Connect to friend" Command="{Binding SetFriendPortCommand}" Height="43"/>
-            <TextBox TextWrapping="Wrap" Text="Disconnected"/>
-            <Button Content="Disconnect" Height="24"/>
+            <TextBox TextWrapping="Wrap" Text="Disconnected" TextChanged="TextBox_TextChanged_2"/>
+            <Button Content="Disconnect" Height="24" Command="{Binding DisconnectCommand}"/>
         </StackPanel>
         <StackPanel Margin="320,279,0,15">
             <TextBox TextWrapping="Wrap" Text="{Binding Path=SendMessageTextBox, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" Width="488" Height="68" TextChanged="TextBox_TextChanged_1"/>

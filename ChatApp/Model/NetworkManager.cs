@@ -1,18 +1,21 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ChatApp.Model
 {
     internal class NetworkManager : INotifyPropertyChanged
     {
-
+        public event Action<ChatMessage> MessageReceived;
+        private CancellationTokenSource? _waitForDisconnect;
         private TaskCompletionSource<bool> _waitForConnectDecision;
         public event EventHandler<ConnectionRequestedEventArgs>? ConnectionRequested;
         private NetworkStream stream;
@@ -110,7 +113,7 @@ namespace ChatApp.Model
 
                     Message += "Connection established \n";
                     await ListenForMessages(reader);
-                    //handleConnection(endPoint);
+
                 }
                 finally
                 {
@@ -138,16 +141,14 @@ namespace ChatApp.Model
 
         public void AcceptConnection()
         {
-            Message += "Inne i AcceptConnection \n ";
             _waitForConnectDecision?.TrySetResult(true);
         }
         public void RejectConnection()
         {
-            Message += "Inne i rejectconnection \n ";
             _waitForConnectDecision?.TrySetResult(false);
         }
 
-        public void SendChatMessage(string text)
+/*        public void SendChatMessage(string text)
         {
             if (!string.IsNullOrWhiteSpace(text))
             {
@@ -156,6 +157,7 @@ namespace ChatApp.Model
                 stream.Write(bytes, 0, bytes.Length);
             }
         }
+*/
         public async Task SendJson(ChatMessage msg)
         {
             string json = JsonSerializer.Serialize(msg);
@@ -163,10 +165,12 @@ namespace ChatApp.Model
             await writer.FlushAsync();
         }
 
-        public event Action<ChatMessage> MessageReceived;
         private async Task ListenForMessages(StreamReader reader)
         {
-            while (true)
+
+            _waitForDisconnect = new CancellationTokenSource();
+
+            while (!_waitForDisconnect.Token.IsCancellationRequested)
             {
                 string? json = await reader.ReadLineAsync();
                 if (json == null)
@@ -179,7 +183,18 @@ namespace ChatApp.Model
                     MessageReceived?.Invoke(msg);
                 }
             }
+
         }
+
+        public void Disconnect() {
+
+            Debug.WriteLine("OJOJOJOJ");
+            _waitForDisconnect?.Cancel();
+            
+
+            //Här kanske man ska stänga tcpendpoint och stream osv....
+        }
+
         public string Port
         {
             get { return _Port; }
