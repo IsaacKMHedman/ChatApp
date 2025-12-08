@@ -14,11 +14,11 @@
             <Button Content="Set portnumber" Command="{Binding StartServerCommand}" Height="43"/>
             <TextBox TextWrapping="Wrap" Text="{Binding Path=FriendPort, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" Height="40"/>
             <Button Content="Connect to friend" Command="{Binding SetFriendPortCommand}" Height="43"/>
-            <TextBox TextWrapping="Wrap" Text="Disconnected" TextChanged="TextBox_TextChanged_2"/>
+            <TextBox TextWrapping="Wrap" Text="{Binding connectedStatusString, Mode=OneWay}" IsReadOnly="True" TextChanged="TextBox_TextChanged_2" Height="26"/>
             <Button Content="Disconnect" Height="24" Command="{Binding DisconnectCommand}"/>
         </StackPanel>
         <StackPanel Margin="320,279,0,15">
-            <TextBox TextWrapping="Wrap" Text="{Binding Path=SendMessageTextBox, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" Width="488" Height="68" TextChanged="TextBox_TextChanged_1"/>
+            <TextBox TextWrapping="Wrap" Text="{Binding Path=SendMessageTextBox, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="488" Height="68" TextChanged="TextBox_TextChanged_1"/>
             <Button Content="Send message" Height="47" Width="480" Command="{Binding SendMessageButtonCommand}"/>
             <Button Content="Ping" Height="45" Click="PingButtonClick"/>
         </StackPanel>

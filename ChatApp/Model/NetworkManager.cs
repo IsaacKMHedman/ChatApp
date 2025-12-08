@@ -18,6 +18,9 @@ namespace ChatApp.Model
         private CancellationTokenSource? _waitForDisconnect;
         private TaskCompletionSource<bool> _waitForConnectDecision;
         public event EventHandler<ConnectionRequestedEventArgs>? ConnectionRequested;
+        public event EventHandler ConnectionStatusChanged;
+        private bool isConnected = false;
+
         private NetworkStream stream;
         public string adress = "127.0.0.1:";
         string _Port = "";
@@ -27,7 +30,7 @@ namespace ChatApp.Model
         string _friendName = "";
         private StreamWriter writer;
         private StreamReader reader;
-
+        private TcpClient endPoint;
 
         //Konstruktorn kanske inte behövs
         public NetworkManager()
@@ -43,7 +46,7 @@ namespace ChatApp.Model
             Task.Factory.StartNew(() =>
             {
                 TcpListener server = new TcpListener(IPAddress.Loopback, int.Parse(_Port));
-                TcpClient endPoint = null;
+                endPoint = null;
 
                 try
                 {
@@ -67,14 +70,12 @@ namespace ChatApp.Model
 
                     if (accepted)
                     {
-                        Message += "Accepted \n";
                         _ = ListenForMessages(reader);
                         //handleConnection(endPoint);
 
                     }
                     else
                     {
-                        Message += "Declined";
                         endPoint.Close();
                     }
                 }
@@ -87,6 +88,7 @@ namespace ChatApp.Model
         }
 
         //Här är där man connectar som endpoint. Här skickar vi även med namnet på den som försöker ansluta.
+        //Connect to friend kör listenformessages för snabbt. Den kör den utan att kolla om den andra faktiskt har accepterat.
         public bool connectToFriend()
         {
             Task.Factory.StartNew(async () =>
@@ -112,6 +114,7 @@ namespace ChatApp.Model
                     sender.Flush();
 
                     Message += "Connection established \n";
+                    
                     await ListenForMessages(reader);
 
                 }
@@ -167,12 +170,14 @@ namespace ChatApp.Model
 
         private async Task ListenForMessages(StreamReader reader)
         {
-
+            isConnected = true;
+            ConnectionStatusChanged?.Invoke(this, EventArgs.Empty);
             _waitForDisconnect = new CancellationTokenSource();
+            var token = _waitForDisconnect.Token;
 
-            while (!_waitForDisconnect.Token.IsCancellationRequested)
+            while (!token.IsCancellationRequested)
             {
-                string? json = await reader.ReadLineAsync();
+                string? json = await reader.ReadLineAsync(token);
                 if (json == null)
                 {
                     break;
@@ -182,16 +187,24 @@ namespace ChatApp.Model
                 {
                     MessageReceived?.Invoke(msg);
                 }
+
             }
+            isConnected = false;
+            ConnectionStatusChanged?.Invoke(this, EventArgs.Empty);
 
         }
 
         public void Disconnect() {
 
-            Debug.WriteLine("OJOJOJOJ");
-            _waitForDisconnect?.Cancel();
-            
-
+            if (isConnected)
+            {
+                _waitForDisconnect?.Cancel();
+                stream?.Close();
+                endPoint?.Close();
+                isConnected = false;
+                ConnectionStatusChanged?.Invoke(this, EventArgs.Empty);
+            }
+       
             //Här kanske man ska stänga tcpendpoint och stream osv....
         }
 
@@ -235,6 +248,18 @@ namespace ChatApp.Model
                 OnPropertyChanged();
             }
         }
+
+
+        public bool IsConnected
+        {
+            get { return isConnected; }
+            set
+            {
+                isConnected = value;
+                OnPropertyChanged();
+            }
+        }
+
         public string FriendName
         {
             get => _friendName;

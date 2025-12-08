@@ -24,7 +24,6 @@ namespace ChatApp.ViewModel.Commands
 
         public void Execute(object parameter)
         {
-            parent.setPortUser();
             parent.StartServer();
         }
     }

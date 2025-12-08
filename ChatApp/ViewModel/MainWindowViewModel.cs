@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Text.Json;
+using System.IO;
 
 namespace ChatApp.ViewModel
 {
@@ -34,6 +35,10 @@ namespace ChatApp.ViewModel
         private String nameUser;
         private String friendPort;
         private String sendMessageTextBox;
+        private bool _connectedOrDisconnectedMVM => _networkManager.IsConnected;
+        public string connectedStatusString => _connectedOrDisconnectedMVM ? "Connected" : "Disconnected";
+
+        public string Test = "Yoo";
         public string PortVm
         {
             get => portVm;
@@ -77,6 +82,7 @@ namespace ChatApp.ViewModel
             _networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
             _networkManager.ConnectionRequested += NetworkManagerConnectionRequested;
 
+            _networkManager.ConnectionStatusChanged += OnConnectionStatusChanged;
             Messages = new ObservableCollection<ChatMessage>();
             _networkManager.MessageReceived += OnMessageReceived;
         }
@@ -87,6 +93,11 @@ namespace ChatApp.ViewModel
             {
                 Messages.Add(msg);
             });
+        }
+        private void OnConnectionStatusChanged(object sender, EventArgs e)
+        {
+            OnPropertyChanged(nameof(_connectedOrDisconnectedMVM));
+            OnPropertyChanged(nameof(connectedStatusString));
         }
         private void NetworkManagerOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
@@ -202,17 +213,19 @@ namespace ChatApp.ViewModel
 
         public async Task sendMessageAsync()
         {
-            var msg = new ChatMessage
+            if(sendMessageTextBox != "")
             {
-                Name = NameUser,
-                Message = sendMessageTextBox,
-                Date = DateTime.Now
-            };
-
-            Messages.Add(msg);
-            sendMessageTextBox = "";
-            await _networkManager.SendJson(msg);
-
+                var msg = new ChatMessage
+                {
+                    Name = NameUser,
+                    Message = sendMessageTextBox,
+                    Date = DateTime.Now
+                };
+                Messages.Add(msg);
+                sendMessageTextBox = "";
+                OnPropertyChanged(sendMessageTextBox);
+                await _networkManager.SendJson(msg);
+            }
         }
         public async Task informUserAcceptDecline(bool userInput)
         {
@@ -236,17 +249,6 @@ namespace ChatApp.ViewModel
             };
             await _networkManager.SendJson(msg);
         }
-
-        public void setPortUser()
-        {
-            _networkManager.adress += portVm;
-            Debug.WriteLine(_networkManager.adress);
-            _networkManager.Port = portVm;
-            _networkManager.Message += portVm;
-            Debug.WriteLine("Port: " + portVm);
-
-        }
-
         public void setNameUser()
         {
             _networkManager.Name = nameUser;
@@ -259,19 +261,43 @@ namespace ChatApp.ViewModel
         }
         public void StartServer()
         {
+            _networkManager.Port = portVm;
             _networkManager.startConnection();
         }
 
         public void DisconnectMVW()
         {
-            var msg = new ChatMessage
+            if (_networkManager.IsConnected)
             {
-                Name = NameUser,
-                Message = "Disconnected!!!",
-                Date = DateTime.Now
+                //TA BORT!!!!!!
+                var msg = new ChatMessage
+                {
+                    Name = NameUser,
+                    Message = "Disconnected!!!",
+                    Date = DateTime.Now
+                };
+                _networkManager?.SendJson(msg);
+                SaveChat();
+                _networkManager?.Disconnect();
+            }
+        }
+
+        public void SaveChat()
+        {
+            string directoryString = "ChattHistorik";
+            Directory.CreateDirectory(directoryString);
+
+            string filename = $"conversation_{DateTime.Now:yyyy-MM-dd_HHmmss}.json";
+            string path = Path.Combine(directoryString, filename);
+
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true
             };
-            _networkManager?.SendJson(msg);
-            _networkManager?.Disconnect();
+            string json = JsonSerializer.Serialize(Messages, options);
+            
+            File.WriteAllText(path, json);
+
         }
     }
 }
