@@ -8,12 +8,12 @@ using System.Windows.Input;
 
 namespace ChatApp.ViewModel.Commands
 {
-    internal class UpdateChatHistoryCommand : ICommand
+    internal class SearchHistoryCommand : ICommand
     {
         public event EventHandler CanExecuteChanged;
         private MainWindowViewModel parent = null;
 
-        public UpdateChatHistoryCommand(MainWindowViewModel parent)
+        public SearchHistoryCommand(MainWindowViewModel parent)
         {
             this.parent = parent;
         }
@@ -24,9 +24,7 @@ namespace ChatApp.ViewModel.Commands
         }
         public void Execute(object parameter)
         {
-            
-            parent.LoadFiles(parent.chatLogUrl);
-            parent.copyOverFiles();
+            parent.searchInHistory();
         }
     }
 }

@@ -6,13 +6,13 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Text.Json;
 using System.IO;
+using System.Printing;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ChatApp.ViewModel
 {
@@ -21,27 +21,79 @@ namespace ChatApp.ViewModel
 
         private NetworkManager _networkManager { get; set; }
         private ICommand sendMessageButtonCommand;
-        private ICommand setPort;
         private ICommand setNameUserCommand;
         private ICommand setFriendPortCommand;
         private ICommand startServerCommand;
         private ICommand disconnectCommand;
         private ICommand updateChatHistoryCommand;
+        private ICommand searchHistoryCommand;
+        private ICommand pingCommand;
         public ObservableCollection<ChatMessage> Messages { get; set; }
         public ObservableCollection<string> Files { get; set; }
-
+        public ObservableCollection<ChatMessage> MessagesFromHistory { get; set; }
+        public ObservableCollection<string> FilteredFiles {  get; set; }
+        private string _selectedChatHistory;
+        private int _windowHeight = 900;
+        private int _windowWidth = 800;
         //Det här är tänkt så att man ska kunna ändra texten i chatrutan. 
-        public String ChatText => _networkManager.Message;
-        public String chatLogUrl = "C:\\Users\\isahe131\\source\\repos\\ChatApp\\ChatApp\\bin\\Debug\\net7.0-windows\\ChattHistorik";
-
+        //public String ChatText => _networkManager.Message;
+        public String chatLogUrl = "C:\\Users\\isahe131\\source\\repos\\ChatApp\\ChatApp\\bin\\Debug\\net7.0-windows\\ChattHistorik\\";
+        private String _hasPort;
         private String portVm;
         private String nameUser;
         private String friendPort;
         private String sendMessageTextBox;
+        private String _searchQuery;
         private bool _connectedOrDisconnectedMVM => _networkManager.IsConnected;
         public string connectedStatusString => _connectedOrDisconnectedMVM ? "Connected" : "Disconnected";
 
-        public string Test = "Yoo";
+
+        public String HasPort
+        {
+            get => _hasPort;
+            set
+            {
+                _hasPort = value;
+                OnPropertyChanged(nameof(HasPort));
+            }
+        }
+        public int WindowHeight
+        {
+            get => _windowHeight;
+            set
+            {
+                _windowHeight = value; 
+                OnPropertyChanged(nameof(WindowHeight));
+            }
+        }
+        public int WindowWidth
+        {
+            get => _windowWidth;
+            set
+            {
+                _windowWidth = value;
+                OnPropertyChanged(nameof(WindowWidth));
+            }
+        }
+        public string SelectedChatHistory
+        {
+            get => _selectedChatHistory;
+            set
+            {
+                _selectedChatHistory = value; OnPropertyChanged(nameof(SelectedChatHistory));
+                displayChatHistory(_selectedChatHistory);
+            }
+        }
+
+        public string SearchQuery
+        {
+            get => _searchQuery;
+            set
+            {
+                _searchQuery = value;
+                OnPropertyChanged(nameof(SearchQuery));
+            }
+        }
         public string PortVm
         {
             get => portVm;
@@ -81,16 +133,21 @@ namespace ChatApp.ViewModel
 
         public MainWindowViewModel(NetworkManager networkManager)
         {
+
             _networkManager = networkManager;
-            _networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
+            //_networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
             _networkManager.ConnectionRequested += NetworkManagerConnectionRequested;
 
             _networkManager.ConnectionStatusChanged += OnConnectionStatusChanged;
             Messages = new ObservableCollection<ChatMessage>();
             Files = new ObservableCollection<string>();
+            MessagesFromHistory = new ObservableCollection<ChatMessage>();
             LoadFiles(chatLogUrl);
+            FilteredFiles = new ObservableCollection<string>(Files);
             _networkManager.MessageReceived += OnMessageReceived;
+
         }
+
         public void LoadFiles(string folderPath)
         {
             if (!Directory.Exists(folderPath))
@@ -103,26 +160,46 @@ namespace ChatApp.ViewModel
                 Files.Add(Path.GetFileName(file));
             }
         }
+        public void copyOverFiles()
+        {
+            FilteredFiles.Clear();
+            foreach (var file in Files)
+            {
+                FilteredFiles.Add(Path.GetFileName(file));
+            }
+        }
         private void OnMessageReceived(ChatMessage msg)
         {
             App.Current.Dispatcher.BeginInvoke(() =>
             {
-                Messages.Add(msg);
+                if (msg.Message == "ping")
+                {
+                    Shake();
+                }
+                else
+                {
+                    Messages.Add(msg);
+                }
             });
         }
         private void OnConnectionStatusChanged(object sender, EventArgs e)
         {
-            SaveChat();
+            //Det här är så den bara sparar när den faktiskt har en connection och inte när den först skapar en connection
+            if (!_connectedOrDisconnectedMVM)
+            {
+                SaveChat();
+            }
             OnPropertyChanged(nameof(_connectedOrDisconnectedMVM));
             OnPropertyChanged(nameof(connectedStatusString));
         }
-        private void NetworkManagerOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(NetworkManager.Message))
-            {
-                OnPropertyChanged(nameof(ChatText));
-            }
-        }
+        //Chattext tror jag inte används...
+        //private void NetworkManagerOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        //{
+        //    if (e.PropertyName == nameof(NetworkManager.Message))
+        //    {
+        //        OnPropertyChanged(nameof(ChatText));
+        //    }
+        //}
         private void NetworkManagerConnectionRequested(object? sender, ConnectionRequestedEventArgs e)
         {
             //Async
@@ -139,8 +216,6 @@ namespace ChatApp.ViewModel
                 a.ShowDialog();
 
             }));
-
-
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -180,6 +255,22 @@ namespace ChatApp.ViewModel
             set
             {
                 setNameUserCommand = value;
+            }
+        }
+        public ICommand SearchHistoryCommand
+        {
+            get
+            {
+                if (searchHistoryCommand == null)
+                {
+                    searchHistoryCommand = new SearchHistoryCommand(this);
+                }
+                return searchHistoryCommand;
+            }
+            set
+            {
+                searchHistoryCommand = value;
+
             }
         }
         public ICommand SetFriendPortCommand
@@ -242,6 +333,33 @@ namespace ChatApp.ViewModel
                 disconnectCommand = value;
             }
         }
+        public ICommand PingCommand
+        {
+            get
+            {
+                if (pingCommand == null)
+                {
+                    pingCommand = new PingCommand(this);
+                }
+                return pingCommand;
+            }
+            set
+            {
+                disconnectCommand = value;
+            }
+        }
+        public void searchInHistory()
+        {
+            var q = SearchQuery.ToLower();
+            var results = Files.Where(x => x.ToLower().Contains(q)).ToList();
+
+            FilteredFiles.Clear();
+            foreach(var r in results)
+            {
+                FilteredFiles.Add(r);
+            }
+
+        }
         public async Task sendMessageAsync()
         {
             if(sendMessageTextBox != "")
@@ -280,6 +398,62 @@ namespace ChatApp.ViewModel
             };
             await _networkManager.SendJson(msg);
         }
+        public void displayChatHistory(string s)
+        {
+            MessagesFromHistory.Clear();
+            string json = $"{chatLogUrl}{s}";
+            string jsonString = File.ReadAllText(json);
+            var msg = JsonSerializer.Deserialize<List<ChatMessage>>(jsonString);
+            if (msg != null)
+            {
+                foreach (var ms in msg)
+                {
+                    MessagesFromHistory.Add(ms);
+                }
+            }
+        }
+
+        public async Task pingFriendAsync()
+        {
+            ChatMessage msg = new ChatMessage
+            {
+                Name = NameUser,
+                Message = "ping",
+                Date = DateTime.Now
+            };
+            await _networkManager.SendJson(msg);
+        }
+        async Task Shake()
+        {
+            int shake = 10;
+            for (int i = 0; i < 5; i++)
+            {
+                WindowHeight = WindowHeight + shake;
+                WindowWidth = WindowWidth + shake;
+                await Task.Delay(100);
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                WindowHeight = WindowHeight - shake;
+                WindowWidth = WindowWidth - shake;
+                await Task.Delay(100);
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                WindowHeight = WindowHeight + shake;
+                WindowWidth = WindowWidth + shake;
+                await Task.Delay(100);
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                WindowHeight = WindowHeight - shake;
+                WindowWidth = WindowWidth - shake;
+                await Task.Delay(100);
+            }
+            //Utan det här kan man spamma och förstöra dimensionerna på den andras chat.
+            WindowHeight = 900;
+            WindowWidth = 800;
+        }
         public void setNameUser()
         {
             _networkManager.Name = nameUser;
@@ -304,23 +478,23 @@ namespace ChatApp.ViewModel
                 _networkManager?.Disconnect();
             }
         }
-
         public void SaveChat()
         {
             string directoryString = "ChattHistorik";
             Directory.CreateDirectory(directoryString);
-
-            string filename = $"{DateTime.Now:yyyy-MM-dd_HHmmss}_{nameUser}_{_networkManager.FriendName}.json";
-            string path = Path.Combine(directoryString, filename);
-
-            var options = new JsonSerializerOptions
+            //Så att den sparar från "servern", den som faktiskt har ett friendname sparat tack vare att det skickas med acceptrutan. Smart lösning
+            if (_networkManager.FriendName != "")
             {
-                WriteIndented = true
-            };
-            string json = JsonSerializer.Serialize(Messages, options);
-            
-            File.WriteAllText(path, json);
+                string filename = $"{DateTime.Now:yyyy-MM-dd_HHmmss}_{nameUser}_{_networkManager.FriendName}.json";
+                string path = Path.Combine(directoryString, filename);
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                };
+                string json = JsonSerializer.Serialize(Messages, options);
 
+                File.WriteAllText(path, json);
+            }
         }
     }
 }

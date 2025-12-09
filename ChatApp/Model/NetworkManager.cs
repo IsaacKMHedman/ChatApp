@@ -32,14 +32,6 @@ namespace ChatApp.Model
         private StreamReader reader;
         private TcpClient endPoint;
 
-        //Konstruktorn kanske inte behövs
-        //public NetworkManager()
-        //{
-
-        //}
-
-        //Det vi vill här (Om jag tolkar det rätt... runWhenListenerGotConnection ska...)
-        // : Model -> ViewModel -> View -> ViewModel -> ViewModel(Command) -> ViewModel -> Model. Hur gör man?
         public void startConnection()
         {
 
@@ -70,7 +62,6 @@ namespace ChatApp.Model
 
                     if (accepted)
                     {
-
 
                         _ = ListenForMessages(reader);
                         //handleConnection(endPoint);
@@ -108,19 +99,18 @@ namespace ChatApp.Model
                     reader = new StreamReader(stream);
                     writer = new StreamWriter(stream);
 
-
                     //Det här skickar bara med namn och så i acceptrutan
                     using var sender = new BinaryWriter(stream, Encoding.UTF8, leaveOpen: true);
                     sender.Write(Name);
                     sender.Write(Port);
                     sender.Flush();
 
-
                     await ListenForMessages(reader);
 
                 }
                 finally
                 {
+
                     endPoint.Close();
                 }
 
@@ -180,7 +170,6 @@ namespace ChatApp.Model
                 {
                     MessageReceived?.Invoke(msg);
                 }
-
             }
             isConnected = false;
             ConnectionStatusChanged?.Invoke(this, EventArgs.Empty);

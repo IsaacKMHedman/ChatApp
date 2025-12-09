@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,12 +7,12 @@ using System.Windows.Input;
 
 namespace ChatApp.ViewModel.Commands
 {
-    internal class UpdateChatHistoryCommand : ICommand
+    internal class PingCommand : ICommand
     {
         public event EventHandler CanExecuteChanged;
         private MainWindowViewModel parent = null;
 
-        public UpdateChatHistoryCommand(MainWindowViewModel parent)
+        public PingCommand(MainWindowViewModel parent)
         {
             this.parent = parent;
         }
@@ -24,9 +23,8 @@ namespace ChatApp.ViewModel.Commands
         }
         public void Execute(object parameter)
         {
-            
-            parent.LoadFiles(parent.chatLogUrl);
-            parent.copyOverFiles();
+            parent.pingFriendAsync();
         }
     }
 }
+

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChatApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="900" Width="800">
+        Title="MainWindow" Height="{Binding WindowHeight, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Width="{Binding WindowWidth, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}">
     <Grid Margin="0,0,0,14">
         <StackPanel Margin="10,10,495,240">
             <TextBox x:Name="UsernameTextBox" TextWrapping="Wrap" Text="{Binding Path=NameUser, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" Height="40"/>
@@ -16,18 +16,19 @@
             <Button Content="Connect to friend" Command="{Binding SetFriendPortCommand}" Height="43"/>
             <TextBox TextWrapping="Wrap" Text="{Binding connectedStatusString, Mode=OneWay}" IsReadOnly="True" TextChanged="TextBox_TextChanged_2" Height="26"/>
             <Button Content="Disconnect" Height="24" Command="{Binding DisconnectCommand}"/>
+            <TextBox TextWrapping="Wrap" Text="{Binding Path=HasPort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Height="40"/>
         </StackPanel>
         <StackPanel Margin="320,279,0,15">
             <TextBox TextWrapping="Wrap" Text="{Binding Path=SendMessageTextBox, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="488" Height="68" TextChanged="TextBox_TextChanged_1"/>
             <Button Content="Send message" Height="47" Width="480" Command="{Binding SendMessageButtonCommand}"/>
-            <Button Content="Ping" Height="45" Click="PingButtonClick"/>
+            <Button Content="Ping" Height="45" Command="{Binding PingCommand}"/>
         </StackPanel>
-        <StackPanel Margin="8,340,492,-46">
+        <StackPanel Margin="10,453,490,-159">
             <TextBlock TextWrapping="Wrap"><Run Language="sv-se" Text="Chat history"/></TextBlock>
-            <TextBox TextWrapping="Wrap" Text="Search" Width="300" TextChanged="TextBox_TextChanged_3" Height="52"/>
-            <Button Content="Search" Click="Button_Click"/>
+            <TextBox TextWrapping="Wrap" Text="{Binding Path=SearchQuery, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" Width="300" TextChanged="TextBox_TextChanged_3" Height="52"/>
+            <Button Content="Search" Command="{Binding SearchHistoryCommand}"/>
             <Button Content="Update History" Height="29" Width="303" Command="{Binding UpdateChatHistoryCommand}"/>
-            <ListView Height="232" ItemsSource="{Binding Files}">
+            <ListView Height="232" ItemsSource="{Binding FilteredFiles}" SelectedItem="{Binding SelectedChatHistory, Mode=TwoWay}">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn/>
@@ -35,7 +36,7 @@
                 </ListView.View>
             </ListView>
         </StackPanel>
-        <ItemsControl ItemsSource="{Binding Messages}" Margin="320,10,0,296">
+        <ItemsControl ItemsSource="{Binding Messages}" Margin="320,10,0,382">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Vertical"/>
@@ -55,7 +56,26 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+        <ItemsControl ItemsSource="{Binding MessagesFromHistory}" Margin="320,466,0,0">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Vertical"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
 
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Date}"/>
+                        <TextBlock Text=": "/>
+                        <TextBlock Text="{Binding Name}"/>
+                        <TextBlock Text=": "/>
+                        <TextBlock Text="{Binding Message}"/>
+
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </Grid>
 
 
