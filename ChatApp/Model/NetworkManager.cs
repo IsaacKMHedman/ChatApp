@@ -33,10 +33,10 @@ namespace ChatApp.Model
         private TcpClient endPoint;
 
         //Konstruktorn kanske inte behövs
-        public NetworkManager()
-        {
+        //public NetworkManager()
+        //{
 
-        }
+        //}
 
         //Det vi vill här (Om jag tolkar det rätt... runWhenListenerGotConnection ska...)
         // : Model -> ViewModel -> View -> ViewModel -> ViewModel(Command) -> ViewModel -> Model. Hur gör man?
@@ -70,6 +70,8 @@ namespace ChatApp.Model
 
                     if (accepted)
                     {
+
+
                         _ = ListenForMessages(reader);
                         //handleConnection(endPoint);
 
@@ -113,8 +115,7 @@ namespace ChatApp.Model
                     sender.Write(Port);
                     sender.Flush();
 
-                    Message += "Connection established \n";
-                    
+
                     await ListenForMessages(reader);
 
                 }
@@ -144,6 +145,7 @@ namespace ChatApp.Model
 
         public void AcceptConnection()
         {
+
             _waitForConnectDecision?.TrySetResult(true);
         }
         public void RejectConnection()
@@ -151,16 +153,6 @@ namespace ChatApp.Model
             _waitForConnectDecision?.TrySetResult(false);
         }
 
-/*        public void SendChatMessage(string text)
-        {
-            if (!string.IsNullOrWhiteSpace(text))
-            {
-                var temp = text + "\n";
-                var bytes = Encoding.UTF8.GetBytes(temp);
-                stream.Write(bytes, 0, bytes.Length);
-            }
-        }
-*/
         public async Task SendJson(ChatMessage msg)
         {
             string json = JsonSerializer.Serialize(msg);
@@ -174,6 +166,7 @@ namespace ChatApp.Model
             ConnectionStatusChanged?.Invoke(this, EventArgs.Empty);
             _waitForDisconnect = new CancellationTokenSource();
             var token = _waitForDisconnect.Token;
+
 
             while (!token.IsCancellationRequested)
             {

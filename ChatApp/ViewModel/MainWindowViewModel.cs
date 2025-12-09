@@ -26,10 +26,13 @@ namespace ChatApp.ViewModel
         private ICommand setFriendPortCommand;
         private ICommand startServerCommand;
         private ICommand disconnectCommand;
+        private ICommand updateChatHistoryCommand;
         public ObservableCollection<ChatMessage> Messages { get; set; }
+        public ObservableCollection<string> Files { get; set; }
 
         //Det här är tänkt så att man ska kunna ändra texten i chatrutan. 
         public String ChatText => _networkManager.Message;
+        public String chatLogUrl = "C:\\Users\\isahe131\\source\\repos\\ChatApp\\ChatApp\\bin\\Debug\\net7.0-windows\\ChattHistorik";
 
         private String portVm;
         private String nameUser;
@@ -84,9 +87,22 @@ namespace ChatApp.ViewModel
 
             _networkManager.ConnectionStatusChanged += OnConnectionStatusChanged;
             Messages = new ObservableCollection<ChatMessage>();
+            Files = new ObservableCollection<string>();
+            LoadFiles(chatLogUrl);
             _networkManager.MessageReceived += OnMessageReceived;
         }
+        public void LoadFiles(string folderPath)
+        {
+            if (!Directory.Exists(folderPath))
+                return;
 
+            Files.Clear();
+
+            foreach (var file in Directory.GetFiles(folderPath))
+            {
+                Files.Add(Path.GetFileName(file));
+            }
+        }
         private void OnMessageReceived(ChatMessage msg)
         {
             App.Current.Dispatcher.BeginInvoke(() =>
@@ -96,6 +112,7 @@ namespace ChatApp.ViewModel
         }
         private void OnConnectionStatusChanged(object sender, EventArgs e)
         {
+            SaveChat();
             OnPropertyChanged(nameof(_connectedOrDisconnectedMVM));
             OnPropertyChanged(nameof(connectedStatusString));
         }
@@ -120,7 +137,6 @@ namespace ChatApp.ViewModel
                 vm.RejectAction += async () => await informUserAcceptDecline(false);
 
                 a.ShowDialog();
-
 
             }));
 
@@ -211,6 +227,21 @@ namespace ChatApp.ViewModel
             }
         }
 
+        public ICommand UpdateChatHistoryCommand
+        {
+            get
+            {
+                if (updateChatHistoryCommand == null)
+                {
+                    updateChatHistoryCommand = new UpdateChatHistoryCommand(this);
+                }
+                return updateChatHistoryCommand;
+            }
+            set
+            {
+                disconnectCommand = value;
+            }
+        }
         public async Task sendMessageAsync()
         {
             if(sendMessageTextBox != "")
@@ -230,7 +261,7 @@ namespace ChatApp.ViewModel
         public async Task informUserAcceptDecline(bool userInput)
         {
             string temp = null;
-            //Samma sak på rad kan kanske bryta ut till en funktion om man vill, risk för mer oläslighet
+            //Den som skickar request ska få tillbaka när det är accepterat eller declineat i form av ett meddelande.
             if (userInput)
             {
                 temp = "Accepted Request...";
@@ -269,15 +300,7 @@ namespace ChatApp.ViewModel
         {
             if (_networkManager.IsConnected)
             {
-                //TA BORT!!!!!!
-                var msg = new ChatMessage
-                {
-                    Name = NameUser,
-                    Message = "Disconnected!!!",
-                    Date = DateTime.Now
-                };
-                _networkManager?.SendJson(msg);
-                SaveChat();
+                //SaveChat();
                 _networkManager?.Disconnect();
             }
         }
@@ -287,7 +310,7 @@ namespace ChatApp.ViewModel
             string directoryString = "ChattHistorik";
             Directory.CreateDirectory(directoryString);
 
-            string filename = $"conversation_{DateTime.Now:yyyy-MM-dd_HHmmss}.json";
+            string filename = $"{DateTime.Now:yyyy-MM-dd_HHmmss}_{nameUser}_{_networkManager.FriendName}.json";
             string path = Path.Combine(directoryString, filename);
 
             var options = new JsonSerializerOptions

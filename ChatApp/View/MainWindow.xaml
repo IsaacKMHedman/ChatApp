@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ChatApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="800">
+        Title="MainWindow" Height="900" Width="800">
     <Grid Margin="0,0,0,14">
         <StackPanel Margin="10,10,495,240">
             <TextBox x:Name="UsernameTextBox" TextWrapping="Wrap" Text="{Binding Path=NameUser, Mode=OneWayToSource, UpdateSourceTrigger=PropertyChanged}" Height="40"/>
@@ -23,8 +23,17 @@
             <Button Content="Ping" Height="45" Click="PingButtonClick"/>
         </StackPanel>
         <StackPanel Margin="8,340,492,-46">
-            <Button Content="Chat History" Height="62"/>
-            <Button Content="Go back to chat" Height="59"/>
+            <TextBlock TextWrapping="Wrap"><Run Language="sv-se" Text="Chat history"/></TextBlock>
+            <TextBox TextWrapping="Wrap" Text="Search" Width="300" TextChanged="TextBox_TextChanged_3" Height="52"/>
+            <Button Content="Search" Click="Button_Click"/>
+            <Button Content="Update History" Height="29" Width="303" Command="{Binding UpdateChatHistoryCommand}"/>
+            <ListView Height="232" ItemsSource="{Binding Files}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
         </StackPanel>
         <ItemsControl ItemsSource="{Binding Messages}" Margin="320,10,0,296">
             <ItemsControl.ItemsPanel>
