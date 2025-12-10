@@ -37,7 +37,8 @@ namespace ChatApp.ViewModel
         private int _windowWidth = 800;
         //Det här är tänkt så att man ska kunna ändra texten i chatrutan. 
         //public String ChatText => _networkManager.Message;
-        public String chatLogUrl = "C:\\Users\\isahe131\\source\\repos\\ChatApp\\ChatApp\\bin\\Debug\\net7.0-windows\\ChattHistorik\\";
+        //public String chatLogUrl = "C:\\Users\\isahe131\\source\\repos\\ChatApp\\ChatApp\\bin\\Debug\\net7.0-windows\\ChattHistorik\\";
+        public String chatLogUrl = "C:\\Users\\hedma\\OneDrive\\Dokument\\GitHub\\ChatApp\\ChatApp\\bin\\Debug\\net7.0-windows\\ChattHistorik\\";
         private String _hasPort;
         private String portVm;
         private String nameUser;
@@ -189,6 +190,8 @@ namespace ChatApp.ViewModel
             {
                 SaveChat();
             }
+            //Här sätts hasport till ingenting bara för att det ska vara tydligt för användaren
+            HasPort = "";
             OnPropertyChanged(nameof(_connectedOrDisconnectedMVM));
             OnPropertyChanged(nameof(connectedStatusString));
         }
@@ -382,13 +385,17 @@ namespace ChatApp.ViewModel
             //Den som skickar request ska få tillbaka när det är accepterat eller declineat i form av ett meddelande.
             if (userInput)
             {
+                //Okej man hade kunnat haft någonting som lyssnar och ändrar ens hasport beroende på något i networkmanager. 4
+                //Däremot så kan det lika gärna skickas som ett meddelande
+                HasPort = "Accepted Request...";
                 temp = "Accepted Request...";
-                
             }
             else
             {
+                HasPort = "Rejected request";
                 temp = "Rejected request";
             }
+            OnPropertyChanged(nameof(HasPort));
             var msg = new ChatMessage
             {
                 Name = NameUser,
@@ -465,14 +472,13 @@ namespace ChatApp.ViewModel
             bool connected = await _networkManager.connectToFriendAsync();
             if (!connected)
             {
-                ChatMessage msg = new ChatMessage
-                {
-                    Name = "ERROR",
-                    Message = ": Port is not open",
-                    Date = DateTime.Now
-                };
-                Messages.Add(msg);
-            };
+
+                HasPort = "Port not open";
+            }
+            else
+            {
+                HasPort = "Open port found";
+            }
         }
         public void StartServer()
         {
