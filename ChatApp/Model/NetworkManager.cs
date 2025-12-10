@@ -96,7 +96,6 @@ namespace ChatApp.Model
                     {
                         return false;
                     }
-                    //@TODO här måste man kolla så att det finns en på den porten, hittas den inte ska det avbrytas..
                     await endPoint.ConnectAsync(IPAddress.Loopback, int.Parse(_friendPort));
                     stream = endPoint.GetStream();
                     reader = new StreamReader(stream);
