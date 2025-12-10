@@ -82,19 +82,22 @@ namespace ChatApp.Model
 
         //Här är där man connectar som endpoint. Här skickar vi även med namnet på den som försöker ansluta.
         //Connect to friend kör listenformessages för snabbt. Den kör den utan att kolla om den andra faktiskt har accepterat.
-        public bool connectToFriend()
+        public async Task<bool> connectToFriendAsync()
         {
-            Task.Factory.StartNew(async () =>
-            {
+            //Task.Factory.StartNew(async () =>
+            //{
                 TcpClient endPoint = new TcpClient();
 
                 try
                 {
-
+                //TryParse fungerar bara med out var port, den skapar tydligen en variabel och lägger resultatet där
+                //Om det är en tom sträng kraschar programmet, om så denna koll är väldigtväldigt viktig
+                    if (!int.TryParse(_friendPort, out var port))
+                    {
+                        return false;
+                    }
                     //@TODO här måste man kolla så att det finns en på den porten, hittas den inte ska det avbrytas..
-                    Message += "Looking for port " + _friendPort;
-                    Message += "Connecting to the server... ";
-                    endPoint.Connect(IPAddress.Loopback, int.Parse(_friendPort));
+                    await endPoint.ConnectAsync(IPAddress.Loopback, int.Parse(_friendPort));
                     stream = endPoint.GetStream();
                     reader = new StreamReader(stream);
                     writer = new StreamWriter(stream);
@@ -105,17 +108,22 @@ namespace ChatApp.Model
                     sender.Write(Port);
                     sender.Flush();
 
-                    await ListenForMessages(reader);
+                    _ = ListenForMessages(reader);
 
+                     return true;
+
+                }
+                catch (SocketException)
+                {
+                    return false;
                 }
                 finally
                 {
-
-                    endPoint.Close();
+                    //endPoint.Close();
                 }
 
-            });
-            return true;
+            //});
+            //return true;
         }
 
         //Okej såhär är det. Listenern får namnet på den som försöker. Därför har vi det.

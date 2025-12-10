@@ -459,10 +459,20 @@ namespace ChatApp.ViewModel
             _networkManager.Name = nameUser;
             Debug.WriteLine(nameUser);
         }
-        public void setPortFriend()
+        public async void setPortFriend()
         {
             _networkManager.FriendPort = friendPort;
-            _networkManager.connectToFriend();
+            bool connected = await _networkManager.connectToFriendAsync();
+            if (!connected)
+            {
+                ChatMessage msg = new ChatMessage
+                {
+                    Name = "ERROR",
+                    Message = ": Port is not open",
+                    Date = DateTime.Now
+                };
+                Messages.Add(msg);
+            };
         }
         public void StartServer()
         {
