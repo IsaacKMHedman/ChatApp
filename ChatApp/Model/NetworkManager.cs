@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -14,24 +13,29 @@ namespace ChatApp.Model
 {
     internal class NetworkManager : INotifyPropertyChanged
     {
+        //@CHANGED -- Ändrade ordningen på dessa så de är lite grupperade 
         public event Action<ChatMessage> MessageReceived;
-        private CancellationTokenSource? _waitForDisconnect;
-        private TaskCompletionSource<bool> _waitForConnectDecision;
         public event EventHandler<ConnectionRequestedEventArgs>? ConnectionRequested;
         public event EventHandler ConnectionStatusChanged;
-        private bool isConnected = false;
 
+        private CancellationTokenSource? _waitForDisconnect;
+        private TaskCompletionSource<bool> _waitForConnectDecision;
+        
         private NetworkStream stream;
-        public string adress = "127.0.0.1:";
-        string _Port = "";
-        string _Name = "";
-        string _Message = "";
-        string _friendPort = "";
-        string _friendName = "";
         private StreamWriter writer;
         private StreamReader reader;
         private TcpClient endPoint;
 
+        //@CHANGED -- Ändrade dessa under till private
+        private string adress = "127.0.0.1:";
+        private string _Port = "";
+        private string _Name = "";
+        //string _Message = "";
+        private string _friendPort = "";
+        private string _friendName = "";
+        private bool isConnected = false;
+
+        //Startconnection körs när man sätter sin port
         public void startConnection()
         {
 
@@ -42,12 +46,9 @@ namespace ChatApp.Model
 
                 try
                 {
-                    Message += "Inne i first try... ";
                     server.Start();
-                    Message += "Starting the listening ... ";
                     //Den här sitter och väntar tills någon kopplar upp sig
                     endPoint = server.AcceptTcpClient();
-                    Message += "Connection accepted \n";
                     reader = new StreamReader(endPoint.GetStream());
                     writer = new StreamWriter(endPoint.GetStream());
 
@@ -74,7 +75,7 @@ namespace ChatApp.Model
                 }
                 catch
                 {
-                    Message += "Catchar efter först try ... \n";
+                    //Message += "Catchar efter först try ... \n";
                 }
             });
 
@@ -118,6 +119,7 @@ namespace ChatApp.Model
                 }
                 finally
                 {
+                    //@REMOVE - Ta inte bort förrän vi tar reda på vad gör finally egentligen? 
                     //endPoint.Close();
                 }
 
@@ -193,10 +195,21 @@ namespace ChatApp.Model
                 isConnected = false;
                 ConnectionStatusChanged?.Invoke(this, EventArgs.Empty);
             }
-       
-            //Här kanske man ska stänga tcpendpoint och stream osv....
-        }
 
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        protected void OnConnectionRequested(ConnectionRequestedEventArgs e)
+        {
+            ConnectionRequested?.Invoke(this, e);
+        }
         public string Port
         {
             get { return _Port; }
@@ -218,15 +231,16 @@ namespace ChatApp.Model
 
         }
 
-        public string Message
-        {
-            get { return _Message; }
-            set
-            {
-                _Message = value;
-                OnPropertyChanged();
-            }
-        }
+        //@REMOVE
+        //public string Message
+        //{
+        //    get { return _Message; }
+        //    set
+        //    {
+        //        _Message = value;
+        //        OnPropertyChanged();
+        //    }
+        //}
 
         public string FriendPort
         {
@@ -262,19 +276,6 @@ namespace ChatApp.Model
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void OnPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-        protected void OnConnectionRequested(ConnectionRequestedEventArgs e)
-        {
-            ConnectionRequested?.Invoke(this, e);
-        }
     }
     internal class ConnectionRequestedEventArgs : EventArgs
     {

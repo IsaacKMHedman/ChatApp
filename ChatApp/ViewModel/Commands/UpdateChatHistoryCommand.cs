@@ -24,8 +24,8 @@ namespace ChatApp.ViewModel.Commands
         }
         public void Execute(object parameter)
         {
-            
-            parent.LoadFiles(parent.chatLogUrl);
+            //@CHANGED -- Ändrade chatlogurl till private och gjorde en getter
+            parent.LoadFiles(parent.ChatLogUrl);
             parent.copyOverFiles();
         }
     }

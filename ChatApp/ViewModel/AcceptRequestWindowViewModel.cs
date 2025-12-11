@@ -17,38 +17,56 @@ namespace ChatApp.ViewModel
     internal class AcceptRequestWindowViewModel : INotifyPropertyChanged
     {
 
-        private NetworkManager _networkManager;
-        private ICommand acceptRequest;
-        private ICommand rejectRequest;
         public event Action? CloseAction;
         public event Action? AcceptAction;
         public event Action? RejectAction;
 
+        private NetworkManager _networkManager;
+
+        private ICommand acceptRequest;
+        private ICommand rejectRequest;
+
         public string FriendName => _networkManager.FriendName;
         public string FriendPort => _networkManager.FriendPort;
 
-
+        //@CHANGED -- Ändrade bara lite ordning på variablerna samt flyttade ner ICommandsen nedanför
         public AcceptRequestWindowViewModel(NetworkManager networkManager)
         {
             _networkManager = networkManager;
-            _networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
+            //@REMOVE
+            //_networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
+        //@REMOVE
         //Det här behövs ses över.
-        private void NetworkManagerOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(NetworkManager.Message))
-            {
-                OnPropertyChanged(nameof(NetworkManager.Message));
-            }
-        }
+        //private void NetworkManagerOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        //{
+        //    if (e.PropertyName == nameof(NetworkManager.Message))
+        //    {
+        //        OnPropertyChanged(nameof(NetworkManager.Message));
+        //    }
+        //}
         private void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+        
+        public void rejectRequestFunction()
+        {
+            RejectAction?.Invoke();
+            _networkManager.RejectConnection();
+            CloseAction?.Invoke();
+        }
 
+        public void acceptRequestFunction()
+        {
+
+            _networkManager.AcceptConnection();
+            CloseAction?.Invoke();
+            AcceptAction?.Invoke();
+        }
         public ICommand AcceptRequest
         {
             get
@@ -80,21 +98,6 @@ namespace ChatApp.ViewModel
             {
                 rejectRequest = value;
             }
-        }
-
-        public void rejectRequestFunction()
-        {
-            RejectAction?.Invoke();
-            _networkManager.RejectConnection();
-            CloseAction?.Invoke();
-        }
-
-        public void acceptRequestFunction()
-        {
-
-            _networkManager.AcceptConnection();
-            CloseAction?.Invoke();
-            AcceptAction?.Invoke();
         }
         
     }
