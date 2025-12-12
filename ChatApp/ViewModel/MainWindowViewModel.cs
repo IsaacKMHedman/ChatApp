@@ -21,6 +21,8 @@ namespace ChatApp.ViewModel
 
         private NetworkManager _networkManager { get; set; }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
         private ICommand sendMessageButtonCommand;
         private ICommand setNameUserCommand;
         private ICommand setFriendPortCommand;
@@ -38,11 +40,8 @@ namespace ChatApp.ViewModel
         private string _selectedChatHistory;
         private int _windowHeight = 900;
         private int _windowWidth = 800;
-        //Det här är tänkt så att man ska kunna ändra texten i chatrutan. 
-        //public String ChatText => _networkManager.Message;
-        //public String chatLogUrl = "C:\\Users\\isahe131\\source\\repos\\ChatApp\\ChatApp\\bin\\Debug\\net7.0-windows\\ChattHistorik\\";
-        //@CHANGED -- Ändrade chatlogurl till private, gjorde en getter istället. Den användes i updatechatcommand
-        private String _chatLogUrl = "C:\\Users\\hedma\\OneDrive\\Dokument\\GitHub\\ChatApp\\ChatApp\\bin\\Debug\\net7.0-windows\\ChattHistorik\\";
+        private String _chatLogUrl = "C:\\Users\\isahe131\\source\\repos\\ChatApp\\ChatApp\\bin\\Debug\\net7.0-windows\\ChattHistorik\\";
+        //private String _chatLogUrl = "C:\\Users\\hedma\\OneDrive\\Dokument\\GitHub\\ChatApp\\ChatApp\\bin\\Debug\\net7.0-windows\\ChattHistorik\\";
         private String _hasPort;
         private String portVm;
         private String nameUser;
@@ -50,36 +49,34 @@ namespace ChatApp.ViewModel
         private String sendMessageTextBox;
         private String _searchQuery;
         private bool _connectedOrDisconnectedMVM => _networkManager.IsConnected;
-        //@CHANGED -- Försökte ändra connectedstatusstring till private - Fick det inte att funka
-        //Vet inte varför
         public string connectedStatusString => _connectedOrDisconnectedMVM ? "Connected" : "Disconnected";
 
-        //@CHANGED Flyttade ner samtliga get/set nederst
+     
 
         public MainWindowViewModel(NetworkManager networkManager)
         {
             _networkManager = networkManager;
-            //@CHANGED -- Eftersom message i networkmanager inte används kan vi nog ta bort denna rad
-            //_networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
             _networkManager.ConnectionRequested += NetworkManagerConnectionRequested;
             _networkManager.ConnectionStatusChanged += OnConnectionStatusChanged;
+            _networkManager.MessageReceived += OnMessageReceived;
+
             Messages = new ObservableCollection<ChatMessage>();
             Files = new ObservableCollection<string>();
             MessagesFromHistory = new ObservableCollection<ChatMessage>();
             LoadFiles(_chatLogUrl);
             FilteredFiles = new ObservableCollection<string>(Files);
-            _networkManager.MessageReceived += OnMessageReceived;
-
         }
-
-        //@CHANGED -- Flyttade ner funktioner härifrån. Här är våra onpropertychanged först
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
         private void OnMessageReceived(ChatMessage msg)
         {
-            App.Current.Dispatcher.BeginInvoke(() =>
+            App.Current.Dispatcher.BeginInvoke(async () =>
             {
                 if (msg.Message == "ping")
                 {
-                    Shake();
+                    await Shake();
                 }
                 else
                 {
@@ -101,17 +98,9 @@ namespace ChatApp.ViewModel
             OnPropertyChanged(nameof(connectedStatusString));
         }
 
-        //Chattext tror jag inte används...
-        //private void NetworkManagerOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-        //{
-        //    if (e.PropertyName == nameof(NetworkManager.Message))
-        //    {
-        //        OnPropertyChanged(nameof(ChatText));
-        //    }
-        //}
         private void NetworkManagerConnectionRequested(object? sender, ConnectionRequestedEventArgs e)
         {
-            //Async
+
             Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
                 var a = new AcceptRequestWindow();
@@ -126,8 +115,8 @@ namespace ChatApp.ViewModel
 
             }));
         }
-        //@CHANGED -- Flyttade ner alla ICommand och onpropertychanged
-        //@CHANGED -- Flyttade ner alla funktioner, har alla tasks överst sen kommer funktioner
+
+        //Skickar meddelanden från den ena till den andra. SendJson är det som för över meddelandet
         public async Task sendMessageAsync()
         {
             if(sendMessageTextBox != "")
@@ -144,14 +133,14 @@ namespace ChatApp.ViewModel
                 await _networkManager.SendJson(msg);
             }
         }
+        //Informerar användaren huruvida den accepterat eller rejectat en connect-request.
+        //HasPort informerar den som klickar accept/reject och temp skickas med ett meddelande till den som försöker ansluta.
         public async Task informUserAcceptDecline(bool userInput)
         {
             string temp = null;
             //Den som skickar request ska få tillbaka när det är accepterat eller declineat i form av ett meddelande.
             if (userInput)
             {
-                //Okej man hade kunnat haft någonting som lyssnar och ändrar ens hasport beroende på något i networkmanager. 4
-                //Däremot så kan det lika gärna skickas som ett meddelande
                 HasPort = "Accepted Request...";
                 temp = "Accepted Request...";
             }
@@ -171,7 +160,8 @@ namespace ChatApp.ViewModel
             await _networkManager.SendJson(msg);
         }
 
-
+        //När användaren klickar på ping knappen ska meddelandet ping skickas
+        //Detta innebär alltså att om användaren skriver in ping i chatten sker samma sak
         public async Task pingFriendAsync()
         {
             ChatMessage msg = new ChatMessage
@@ -182,6 +172,8 @@ namespace ChatApp.ViewModel
             };
             await _networkManager.SendJson(msg);
         }
+        //När användaren mottar "ping" så kommer den här funktionen att köras. 
+        //Simulerar något slags skak...
         async Task Shake()
         {
             int shake = 10;
@@ -213,15 +205,18 @@ namespace ChatApp.ViewModel
             WindowHeight = 900;
             WindowWidth = 800;
         }
+        //När användaren klickar på set username knappen
         public void setNameUser()
         {
             _networkManager.Name = nameUser;
-            Debug.WriteLine(nameUser);
         }
+        //När användaren klickar på knappen för Connect To Friend
         public async void setPortFriend()
         {
             _networkManager.FriendPort = friendPort;
             bool connected = await _networkManager.connectToFriendAsync();
+            //Här sätts hasport till port not open ifall porten användaren försöker ansluta till ej är öppen
+            //Funkar eftersom connecttofriendasync returnar en boolean beroende på om det gått bra att ansluta till porten eller ej
             if (!connected)
             {
 
@@ -232,11 +227,15 @@ namespace ChatApp.ViewModel
                 HasPort = "Open port found";
             }
         }
+        //Visar chatten man har valt från historiken
         public void displayChatHistory(string s)
         {
+            //Rensar MessageFromHistory vilket är en observable collection som vi sparar den aktuella chattens meddelande i
             MessagesFromHistory.Clear();
             string json = $"{_chatLogUrl}{s}";
             string jsonString = File.ReadAllText(json);
+            //Läser helt enkelt ut JSON och delar upp det i olika meddelanden
+            //Visar sedan meddalanden genom att lägga till varje enstaka meddelanden i vår observable collection
             var msg = JsonSerializer.Deserialize<List<ChatMessage>>(jsonString);
             if (msg != null)
             {
@@ -246,25 +245,30 @@ namespace ChatApp.ViewModel
                 }
             }
         }
+        //När användaren klickar på set portnumber
         public void StartServer()
         {
             _networkManager.Port = portVm;
             _networkManager.startConnection();
         }
 
+        //När användaren klickar på disconnectknappen
         public void DisconnectMVW()
         {
             if (_networkManager.IsConnected)
             {
-                //SaveChat();
                 _networkManager?.Disconnect();
             }
         }
+        //Funktion för att spara. Körs när användarens connectionstatus ändras med en onpropertychanged.
+        //I propertychanged finns det en koll så att denna bara körs ifall användaren för nuvarande har en connection. 
         public void SaveChat()
         {
             string directoryString = "ChattHistorik";
             Directory.CreateDirectory(directoryString);
-            //Så att den sparar från "servern", den som faktiskt har ett friendname sparat tack vare att det skickas med acceptrutan. Smart lösning
+            //Så att den sparar från "servern",
+            //det är bara den som faktiskt har ett friendname sparat tack vare att det skickas med acceptrutan. (Det behövs för att kunna spara båda namnen på användarna i filnamnet)
+            //Smart lösning
             if (_networkManager.FriendName != "")
             {
                 string filename = $"{DateTime.Now:yyyy-MM-dd_HHmmss}_{nameUser}_{_networkManager.FriendName}.json";
@@ -278,6 +282,8 @@ namespace ChatApp.ViewModel
                 File.WriteAllText(path, json);
             }
         }
+        //Sökfunktionen i chathistoriken. Ganska straightforward. Kollar om filnamnen (strängarna) innehåller det användaren
+        //skriver sökt efter. Sätter båda till gemener för att det inte ska bli några case-sensitivity problem
         public void searchInHistory()
         {
             var q = SearchQuery.ToLower();
@@ -290,6 +296,8 @@ namespace ChatApp.ViewModel
             }
 
         }
+        //Laddar in alla filer från historiken. Kör en gång när programmet startar, sedan när användaren klickar på updatehistory
+
         public void LoadFiles(string folderPath)
         {
             if (!Directory.Exists(folderPath))
@@ -302,6 +310,8 @@ namespace ChatApp.ViewModel
                 Files.Add(Path.GetFileName(file));
             }
         }
+        //Denna tar över alla filer från files och kör in den i filteredfiles. Filtered files är den som visas på skärmen.
+        //Gör detta för att Files har alla filer men filteredfiles utgår från files men visar endast de som matchar filtreringen(sökningen)
         public void copyOverFiles()
         {
             FilteredFiles.Clear();
@@ -311,13 +321,15 @@ namespace ChatApp.ViewModel
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
+        //Nedan kommer alla ICommands och sedan getters och setters. Alla commands har en fil i
+        //Viewmodel/commands. Den har i sin tur en eller fler funktioner i MainWindowViewModel som körs -
+        //T.ex har updatehistorycommand
+        //
+        // parent.LoadFiles(parent.ChatLogUrl);
+        // parent.copyOverFiles();
+        /// 
+        /// 
+        /// 
         public ICommand SendMessageButtonCommand
         {
             get

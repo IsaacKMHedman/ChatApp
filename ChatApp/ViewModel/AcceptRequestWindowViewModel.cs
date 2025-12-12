@@ -14,7 +14,7 @@ using System.Windows.Input;
 
 namespace ChatApp.ViewModel
 {
-    internal class AcceptRequestWindowViewModel : INotifyPropertyChanged
+    internal class AcceptRequestWindowViewModel
     {
 
         public event Action? CloseAction;
@@ -29,30 +29,15 @@ namespace ChatApp.ViewModel
         public string FriendName => _networkManager.FriendName;
         public string FriendPort => _networkManager.FriendPort;
 
-        //@CHANGED -- Ändrade bara lite ordning på variablerna samt flyttade ner ICommandsen nedanför
         public AcceptRequestWindowViewModel(NetworkManager networkManager)
         {
             _networkManager = networkManager;
-            //@REMOVE
-            //_networkManager.PropertyChanged += NetworkManagerOnPropertyChanged;
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        //@REMOVE
-        //Det här behövs ses över.
-        //private void NetworkManagerOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-        //{
-        //    if (e.PropertyName == nameof(NetworkManager.Message))
-        //    {
-        //        OnPropertyChanged(nameof(NetworkManager.Message));
-        //    }
-        //}
-        private void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        
+        //Klickar användaren på reject eller accept kör den lite olika saker. 
+        //Dessa actions ligger i mainwindowviewmodel där vi skapar den här accept-rutan
+        //Networkmanager.RejectConnection/AcceptConnection körs och sätter en TaskCompletionSource till respektive värde.
+        //Det är då networkmanager kan gå vidare
         public void rejectRequestFunction()
         {
             RejectAction?.Invoke();
@@ -62,7 +47,6 @@ namespace ChatApp.ViewModel
 
         public void acceptRequestFunction()
         {
-
             _networkManager.AcceptConnection();
             CloseAction?.Invoke();
             AcceptAction?.Invoke();

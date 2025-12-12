@@ -13,7 +13,7 @@ namespace ChatApp.Model
 {
     internal class NetworkManager : INotifyPropertyChanged
     {
-        //@CHANGED -- Ändrade ordningen på dessa så de är lite grupperade 
+        public event PropertyChangedEventHandler PropertyChanged;
         public event Action<ChatMessage> MessageReceived;
         public event EventHandler<ConnectionRequestedEventArgs>? ConnectionRequested;
         public event EventHandler ConnectionStatusChanged;
@@ -26,15 +26,25 @@ namespace ChatApp.Model
         private StreamReader reader;
         private TcpClient endPoint;
 
-        //@CHANGED -- Ändrade dessa under till private
-        private string adress = "127.0.0.1:";
         private string _Port = "";
         private string _Name = "";
-        //string _Message = "";
         private string _friendPort = "";
         private string _friendName = "";
         private bool isConnected = false;
 
+
+
+        private void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        protected void OnConnectionRequested(ConnectionRequestedEventArgs e)
+        {
+            ConnectionRequested?.Invoke(this, e);
+        }
         //Startconnection körs när man sätter sin port
         public void startConnection()
         {
@@ -51,7 +61,7 @@ namespace ChatApp.Model
                     endPoint = server.AcceptTcpClient();
                     reader = new StreamReader(endPoint.GetStream());
                     writer = new StreamWriter(endPoint.GetStream());
-
+                    
                     var tcs = new TaskCompletionSource<bool>();
                     _waitForConnectDecision = tcs;
 
@@ -75,7 +85,6 @@ namespace ChatApp.Model
                 }
                 catch
                 {
-                    //Message += "Catchar efter först try ... \n";
                 }
             });
 
@@ -85,8 +94,6 @@ namespace ChatApp.Model
         //Connect to friend kör listenformessages för snabbt. Den kör den utan att kolla om den andra faktiskt har accepterat.
         public async Task<bool> connectToFriendAsync()
         {
-            //Task.Factory.StartNew(async () =>
-            //{
                 TcpClient endPoint = new TcpClient();
 
                 try
@@ -117,18 +124,11 @@ namespace ChatApp.Model
                 {
                     return false;
                 }
-                finally
-                {
-                    //@REMOVE - Ta inte bort förrän vi tar reda på vad gör finally egentligen? 
-                    //endPoint.Close();
-                }
-
-            //});
-            //return true;
         }
 
-        //Okej såhär är det. Listenern får namnet på den som försöker. Därför har vi det.
-        //Vi måste skicka tillbaka namnet på listenern till den andre
+        //Okej såhär är det. Listenern får namnet på den som försöker ansluta.
+        //Det här är den som blir connectad på. Tar in namn och port från den som ansluter (till acceptansrutan)
+        //
         public void runWhenListenerGotConnection(TcpClient endPoint)
         {
             stream = endPoint.GetStream();
@@ -141,24 +141,25 @@ namespace ChatApp.Model
                 OnConnectionRequested(new ConnectionRequestedEventArgs(remoteEndPoint));
             }
         }
-
+        //Körs från acceptrequestwindowviewmodel när användaren klickar accept eller decline. Då sätts vår taskcompletionsource till sant/falskt och den går vidare
         public void AcceptConnection()
         {
 
             _waitForConnectDecision?.TrySetResult(true);
         }
+
         public void RejectConnection()
         {
             _waitForConnectDecision?.TrySetResult(false);
         }
-
+        //Skickar meddelande i jsonformat.
         public async Task SendJson(ChatMessage msg)
         {
             string json = JsonSerializer.Serialize(msg);
             await writer.WriteLineAsync(json);
             await writer.FlushAsync();
         }
-
+        //Lyssnar på meddelanden. Vår _waitfordisconnect gör så att den väntar på att användaren klickar disconnect och då avbryter loopen.  
         private async Task ListenForMessages(StreamReader reader)
         {
             isConnected = true;
@@ -184,7 +185,7 @@ namespace ChatApp.Model
             ConnectionStatusChanged?.Invoke(this, EventArgs.Empty);
 
         }
-
+        //När användaren klickar på disconnect körs en funktion i MWVM som i sin tur kör denna. Stänger bara allting, inklusive avslutar lyssnarloopen med _waitfordisconnect.cancel
         public void Disconnect() {
 
             if (isConnected)
@@ -197,19 +198,8 @@ namespace ChatApp.Model
             }
 
         }
-        public event PropertyChangedEventHandler PropertyChanged;
+        
 
-        private void OnPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
-        }
-        protected void OnConnectionRequested(ConnectionRequestedEventArgs e)
-        {
-            ConnectionRequested?.Invoke(this, e);
-        }
         public string Port
         {
             get { return _Port; }
@@ -230,17 +220,6 @@ namespace ChatApp.Model
             }
 
         }
-
-        //@REMOVE
-        //public string Message
-        //{
-        //    get { return _Message; }
-        //    set
-        //    {
-        //        _Message = value;
-        //        OnPropertyChanged();
-        //    }
-        //}
 
         public string FriendPort
         {

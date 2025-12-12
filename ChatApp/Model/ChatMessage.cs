@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ChatApp.Model
 {
+    //Bara vårt messageprotokoll
     public class ChatMessage
     {
         public string Name { get; set; }
